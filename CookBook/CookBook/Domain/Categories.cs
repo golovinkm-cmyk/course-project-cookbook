@@ -1,18 +1,26 @@
-﻿namespace CookBook.Domain;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public class Category
+namespace Domain
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-    // Конструкторы
-    public Category() { }
-
-    public Category(string name, string? description = null)
+    public class Category
     {
-        Name = name;
-        Description = description;
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public DateTime CreatedDate { get; set; }
+
+        // Вычисляемое свойство для UI
+        [NotMapped] // Если будете использовать EF Core
+        public int RecipesCount { get; set; }
+
+        // Конструкторы
+        public Category() { }
+
+        public Category(string name, string description)
+        {
+            Name = name;
+            Description = description;
+            CreatedDate = DateTime.Now;
+        }
     }
 }

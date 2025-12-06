@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CookBook.Domain
+namespace Domain
 {
     public class Ingredient
     {

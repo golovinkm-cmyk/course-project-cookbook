@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Data.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,12 @@ namespace UI
 {
     public partial class LicenseWindow : Window
     {
-        public LicenseWindow()
+        public readonly ILicenseRepository _licenseRepository;
+
+        // ОДИН конструктор с Dependency Injection
+        public LicenseWindow(ILicenseRepository licenseRepository)
         {
+            _licenseRepository = licenseRepository;
             InitializeComponent();
             licenseTypeComboBox.SelectedIndex = 0;
             UpdatePrice();
@@ -192,6 +197,15 @@ namespace UI
                 activationStatusTextBlock.Text = "Ошибка: Лицензионный ключ не найден";
                 activationStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
             }
+        }
+        private ILicenseRepository _licenseRepository;
+
+        public LicenseWindow(ILicenseRepository licenseRepository)
+        {
+            _licenseRepository = licenseRepository;
+            InitializeComponent();
+            licenseTypeComboBox.SelectedIndex = 0;
+            UpdatePrice();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

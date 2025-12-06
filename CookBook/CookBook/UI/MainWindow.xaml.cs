@@ -1,115 +1,92 @@
-﻿using System.Collections.ObjectModel;
-using System.Text;
+﻿using Data.InMemory;
+using Data.Interfaces;
+using Domain;
+using Interfaces;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using UI;
 
 namespace UI
 {
     public partial class MainWindow : Window
     {
-        // Классы для временного хранения данных
-        public class RecipeItem
-        {
-            public string Title { get; set; } = string.Empty;
-            public string CategoryName { get; set; } = "Без категории";
-            public int TotalTime { get; set; } = 0;
-            public int Servings { get; set; } = 1;
-            public string DifficultyLevel { get; set; } = "Средний";
-            public bool IsFavorite { get; set; }
-            public bool IsPremium { get; set; }
-        }
+        private readonly IRecipeRepository _recipeRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IIngredientRepository _ingredientRepository;
+        private readonly IRecipeIngredientRepository _recipeIngredientRepository;
+        private readonly ILicenseRepository _licenseRepository;
 
-        public class CategoryItem
-        {
-            public string Name { get; set; } = string.Empty;
-            public string Description { get; set; } = string.Empty;
-            public string CreatedDate { get; set; } = DateTime.Now.ToString("dd.MM.yyyy");
-            public int RecipesCount { get; set; } = 0;
-        }
-
-        private ObservableCollection<RecipeItem> _recipes = new();
-        private ObservableCollection<CategoryItem> _categories = new();
+        private ObservableCollection<Recipe> _recipes = new();
+        private ObservableCollection<Category> _categories = new();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Инициализация данных
-            LoadSampleData();
+            // Инициализация репозиториев
+            _recipeRepository = new RecipeRepository();
+            _categoryRepository = new CategoryRepository();
+            _ingredientRepository = new IngredientRepository();
+            _recipeIngredientRepository = new RecipeIngredientRepository();
+            _licenseRepository = new LicenseRepository();
 
+            // Загрузка данных
+            LoadRecipes();
+            LoadCategories();
+            UpdateStatus();
+
+            // Настройка ComboBox категорий
+            categoryComboBox.ItemsSource = _categories;
+            categoryComboBox.DisplayMemberPath = "Name";
+            categoryComboBox.SelectedValuePath = "Id";
+        }
+
+        private void LoadRecipes()
+        {
+            _recipes.Clear();
+            var recipes = _recipeRepository.GetAll();
+            foreach (var recipe in recipes)
+            {
+                _recipes.Add(recipe);
+            }
             recipesDataGrid.ItemsSource = _recipes;
+            UpdateStatus();
+        }
+
+        private void LoadCategories()
+        {
+            _categories.Clear();
+            var categories = _categoryRepository.GetAll();
+            foreach (var category in categories)
+            {
+                _categories.Add(category);
+            }
             categoriesDataGrid.ItemsSource = _categories;
         }
 
-        private void LoadSampleData()
+        private void UpdateStatus()
         {
-            // Тестовые рецепты
-            _recipes.Add(new RecipeItem
-            {
-                Title = "Картофель по-деревенски",
-                CategoryName = "Основные блюда",
-                TotalTime = 45,
-                Servings = 4,
-                DifficultyLevel = "Легкий",
-                IsFavorite = true,
-                IsPremium = false
-            });
+            int totalRecipes = _recipes.Count;
+            int demoLimit = 5;
 
-            _recipes.Add(new RecipeItem
-            {
-                Title = "Салат Цезарь",
-                CategoryName = "Закуски",
-                TotalTime = 30,
-                Servings = 2,
-                DifficultyLevel = "Средний",
-                IsFavorite = false,
-                IsPremium = true
-            });
+            statusTextBlock.Text = $"Всего рецептов: {totalRecipes}";
 
-            _recipes.Add(new RecipeItem
+            if (totalRecipes <= demoLimit)
             {
-                Title = "Шоколадный торт",
-                CategoryName = "Десерты",
-                TotalTime = 120,
-                Servings = 8,
-                DifficultyLevel = "Сложный",
-                IsFavorite = true,
-                IsPremium = true
-            });
-
-            // Тестовые категории
-            _categories.Add(new CategoryItem
+                demoLimitTextBlock.Text = $"Доступно рецептов: {totalRecipes}/{demoLimit}";
+                demoLimitTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+            }
+            else
             {
-                Name = "Основные блюда",
-                Description = "Горячие блюда на обед или ужин",
-                RecipesCount = 12
-            });
-
-            _categories.Add(new CategoryItem
-            {
-                Name = "Закуски",
-                Description = "Холодные и горячие закуски",
-                RecipesCount = 8
-            });
-
-            _categories.Add(new CategoryItem
-            {
-                Name = "Десерты",
-                Description = "Сладкие блюда и выпечка",
-                RecipesCount = 15
-            });
+                demoLimitTextBlock.Text = $"Ограничение демо-версии: {demoLimit} рецептов";
+                demoLimitTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+            }
         }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Фильтрация рецептов по поисковому запросу
             string searchText = searchTextBox.Text.ToLower();
 
             if (string.IsNullOrEmpty(searchText))
@@ -118,8 +95,12 @@ namespace UI
             }
             else
             {
-                var filtered = new ObservableCollection<RecipeItem>(
-                    _recipes.Where(r => r.Title.ToLower().Contains(searchText))
+                var filtered = new ObservableCollection<Recipe>(
+                    _recipes.Where(r =>
+                        r.Title.ToLower().Contains(searchText) ||
+                        (r.Description != null && r.Description.ToLower().Contains(searchText)) ||
+                        r.Instructions.ToLower().Contains(searchText)
+                    )
                 );
                 recipesDataGrid.ItemsSource = filtered;
             }
@@ -127,12 +108,10 @@ namespace UI
 
         private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Фильтрация рецептов по категории
-            if (categoryComboBox.SelectedItem != null)
+            if (categoryComboBox.SelectedValue is int categoryId)
             {
-                string selectedCategory = categoryComboBox.SelectedItem.ToString();
-                var filtered = new ObservableCollection<RecipeItem>(
-                    _recipes.Where(r => r.CategoryName == selectedCategory)
+                var filtered = new ObservableCollection<Recipe>(
+                    _recipes.Where(r => r.CategoryId == categoryId)
                 );
                 recipesDataGrid.ItemsSource = filtered;
             }
@@ -147,21 +126,36 @@ namespace UI
 
         private void AddRecipeButton_Click(object sender, RoutedEventArgs e)
         {
-            var editWindow = new RecipeEditWindow();
+            var editWindow = new RecipeEditWindow(
+                _recipeRepository,
+                _categoryRepository,
+                _ingredientRepository,
+                _recipeIngredientRepository,
+                null // null для создания нового рецепта
+            );
+
             if (editWindow.ShowDialog() == true)
             {
-                // Здесь будет добавление нового рецепта
-                MessageBox.Show("Рецепт добавлен", "Успех",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                LoadRecipes();
             }
         }
 
         private void EditRecipeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (recipesDataGrid.SelectedItem != null)
+            if (recipesDataGrid.SelectedItem is Recipe selectedRecipe)
             {
-                var editWindow = new RecipeEditWindow();
-                editWindow.ShowDialog();
+                var editWindow = new RecipeEditWindow(
+                    _recipeRepository,
+                    _categoryRepository,
+                    _ingredientRepository,
+                    _recipeIngredientRepository,
+                    selectedRecipe.Id
+                );
+
+                if (editWindow.ShowDialog() == true)
+                {
+                    LoadRecipes();
+                }
             }
             else
             {
@@ -172,10 +166,19 @@ namespace UI
 
         private void ViewRecipeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (recipesDataGrid.SelectedItem != null)
+            if (recipesDataGrid.SelectedItem is Recipe selectedRecipe)
             {
-                var viewWindow = new RecipeViewWindow();
-                viewWindow.ShowDialog();
+                // Получаем полную информацию о рецепте
+                var recipe = _recipeRepository.GetById(selectedRecipe.Id);
+                if (recipe != null)
+                {
+                    var viewWindow = new RecipeViewWindow(
+                        recipe,
+                        _recipeIngredientRepository,
+                        _ingredientRepository,
+                        _categoryRepository);
+                    viewWindow.ShowDialog();
+                }
             }
             else
             {
@@ -186,74 +189,110 @@ namespace UI
 
         private void DeleteRecipeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (recipesDataGrid.SelectedItem != null)
+            if (recipesDataGrid.SelectedItem is Recipe selectedRecipe)
             {
-                var result = MessageBox.Show("Удалить выбранный рецепт?",
+                var result = MessageBox.Show($"Удалить рецепт '{selectedRecipe.Title}'?",
                     "Подтверждение удаления",
                     MessageBoxButton.YesNo, MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    _recipes.Remove((RecipeItem)recipesDataGrid.SelectedItem);
-                    MessageBox.Show("Рецепт удален", "Успех",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (_recipeRepository.Delete(selectedRecipe.Id))
+                    {
+                        // Также удаляем связанные ингредиенты
+                        _recipeIngredientRepository.DeleteByRecipeId(selectedRecipe.Id);
+
+                        LoadRecipes();
+                        MessageBox.Show("Рецепт удален", "Успех",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
         }
 
         private void ToggleFavoriteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (recipesDataGrid.SelectedItem is RecipeItem selectedRecipe)
+            if (recipesDataGrid.SelectedItem is Recipe selectedRecipe)
             {
-                selectedRecipe.IsFavorite = !selectedRecipe.IsFavorite;
-                recipesDataGrid.Items.Refresh();
+                var recipe = _recipeRepository.GetById(selectedRecipe.Id);
+                if (recipe != null)
+                {
+                    recipe.IsFavorite = !recipe.IsFavorite;
+                    _recipeRepository.Update(recipe);
+                    LoadRecipes();
+
+                    string message = recipe.IsFavorite ?
+                        "Рецепт добавлен в избранное" :
+                        "Рецепт удален из избранного";
+                    MessageBox.Show(message, "Успех",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
         }
 
         private void StatisticsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Для статистики нужно будет создать отдельное окно
-            MessageBox.Show("Форма статистики будет добавлена в следующей лабораторной работе",
-                "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            var statisticsWindow = new StatisticsWindow(_recipeRepository);
+            statisticsWindow.ShowDialog();
         }
 
         private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
         {
-            // Для категорий нужно будет создать отдельное окно
-            MessageBox.Show("Форма управления категориями будет добавлена позже",
-                "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            var categoryWindow = new CategoriesWindow(_categoryRepository, _recipeRepository);  // ← Добавили _recipeRepository
+            if (categoryWindow.ShowDialog() == true)
+            {
+                LoadCategories();
+                MessageBox.Show("Категория добавлена", "Успех",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void EditCategoryButton_Click(object sender, RoutedEventArgs e)
         {
-            if (categoriesDataGrid.SelectedItem != null)
+            if (categoriesDataGrid.SelectedItem is Category selectedCategory)
             {
-                // Редактирование категории
-                MessageBox.Show("Редактирование категории",
-                    "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                var categoryWindow = new CategoriesWindow(_categoryRepository, _recipeRepository, selectedCategory.Id);  // ← Три параметра
+                if (categoryWindow.ShowDialog() == true)
+                {
+                    LoadCategories();
+                }
             }
         }
 
         private void DeleteCategoryButton_Click(object sender, RoutedEventArgs e)
         {
-            if (categoriesDataGrid.SelectedItem != null)
+            if (categoriesDataGrid.SelectedItem is Category selectedCategory)
             {
-                var result = MessageBox.Show("Удалить выбранную категорию?",
+                // Проверяем, есть ли рецепты в категории
+                var recipesInCategory = _recipeRepository.GetByCategory(selectedCategory.Id);
+
+                if (recipesInCategory.Any())
+                {
+                    MessageBox.Show($"Нельзя удалить категорию '{selectedCategory.Name}'. В ней есть рецепты.",
+                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var result = MessageBox.Show($"Удалить категорию '{selectedCategory.Name}'?",
                     "Подтверждение удаления",
                     MessageBoxButton.YesNo, MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    _categories.Remove((CategoryItem)categoriesDataGrid.SelectedItem);
+                    if (_categoryRepository.Delete(selectedCategory.Id))
+                    {
+                        LoadCategories();
+                        MessageBox.Show("Категория удалена", "Успех",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
         }
 
         private void BuyLicenseButton_Click(object sender, RoutedEventArgs e)
         {
-            // Для покупки лицензии нужно будет создать отдельное окно
-            MessageBox.Show("Форма покупки лицензии будет добавлена позже",
-                "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            var licenseWindow = new LicenseWindow(_licenseRepository);  // ← УЖЕ ПРАВИЛЬНО
+            licenseWindow.ShowDialog();
         }
     }
 }

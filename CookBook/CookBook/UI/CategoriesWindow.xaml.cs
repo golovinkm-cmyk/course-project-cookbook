@@ -1,81 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Data.Interfaces;
+using Domain;
+using Interfaces;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace UI
 {
     public partial class CategoriesWindow : Window
     {
-        public class CategoryItem
-        {
-            public string Name { get; set; } = string.Empty;
-            public string Description { get; set; } = string.Empty;
-            public DateTime CreatedDate { get; set; } = DateTime.Now;
-            public int RecipesCount { get; set; } = 0;
-        }
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IRecipeRepository _recipeRepository; // Для подсчёта рецептов
+        private Category? _selectedCategory;
+        private readonly ObservableCollection<Category> _categories = new();
 
-        private ObservableCollection<CategoryItem> _categories = new();
-        private CategoryItem? _selectedCategory;
-
-        public CategoriesWindow()
+        // Один конструктор с Dependency Injection
+        public CategoriesWindow(ICategoryRepository categoryRepository, IRecipeRepository recipeRepository)
         {
             InitializeComponent();
-            LoadSampleCategories();
+
+            _categoryRepository = categoryRepository;
+            _recipeRepository = recipeRepository;
+
+            LoadCategories();
             categoriesDataGrid.ItemsSource = _categories;
         }
 
-        private void LoadSampleCategories()
+        // Конструктор для редактирования конкретной категории
+        public CategoriesWindow(ICategoryRepository categoryRepository, IRecipeRepository recipeRepository, int categoryId)
+            : this(categoryRepository, recipeRepository)
         {
-            _categories.Add(new CategoryItem
+            // Найти и выделить категорию для редактирования
+            _selectedCategory = _categories.FirstOrDefault(c => c.Id == categoryId);
+            if (_selectedCategory != null)
             {
-                Name = "Основные блюда",
-                Description = "Горячие блюда на обед или ужин",
-                CreatedDate = new DateTime(2024, 1, 15),
-                RecipesCount = 12
-            });
+                categoriesDataGrid.SelectedItem = _selectedCategory;
+                categoriesDataGrid.ScrollIntoView(_selectedCategory);
+                descriptionTextBox.Text = _selectedCategory.Description;
+            }
+        }
 
-            _categories.Add(new CategoryItem
-            {
-                Name = "Закуски",
-                Description = "Холодные и горячие закуски",
-                CreatedDate = new DateTime(2024, 2, 10),
-                RecipesCount = 8
-            });
+        private void LoadCategories()
+        {
+            _categories.Clear();
 
-            _categories.Add(new CategoryItem
-            {
-                Name = "Десерты",
-                Description = "Сладкие блюда и выпечка",
-                CreatedDate = new DateTime(2024, 3, 5),
-                RecipesCount = 15
-            });
+            // Загружаем категории из репозитория
+            var categories = _categoryRepository.GetAll();
 
-            _categories.Add(new CategoryItem
+            foreach (var category in categories)
             {
-                Name = "Завтраки",
-                Description = "Блюда для утреннего приема пищи",
-                CreatedDate = new DateTime(2024, 1, 20),
-                RecipesCount = 10
-            });
+                // Подсчитываем количество рецептов в категории
+                var recipesCount = _recipeRepository.GetByCategory(category.Id).Count;
 
-            _categories.Add(new CategoryItem
-            {
-                Name = "Напитки",
-                Description = "Горячие и холодные напитки",
-                CreatedDate = new DateTime(2024, 2, 28),
-                RecipesCount = 7
-            });
+                // Создаём копию с дополнительным свойством RecipesCount
+                // (в реальном проекте лучше использовать ViewModel)
+                var categoryWithCount = new Category(category.Name, category.Description)
+                {
+                    Id = category.Id,
+                    CreatedDate = category.CreatedDate
+                };
+
+                // Добавляем в коллекцию
+                _categories.Add(categoryWithCount);
+            }
         }
 
         private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
@@ -88,24 +77,37 @@ namespace UI
                 return;
             }
 
-            var newCategory = new CategoryItem
+            // Проверяем, нет ли уже категории с таким именем
+            if (_categoryRepository.GetByName(name) != null)
             {
-                Name = name,
-                Description = "Новая категория рецептов",
-                CreatedDate = DateTime.Now,
-                RecipesCount = 0
-            };
+                MessageBox.Show($"Категория '{name}' уже существует", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            _categories.Add(newCategory);
-            categoriesDataGrid.SelectedItem = newCategory;
-            categoriesDataGrid.ScrollIntoView(newCategory);
+            // Создаём новую категорию
+            var newCategory = new Category(name, "Новая категория рецептов");
+
+            // Сохраняем в репозиторий
+            int newId = _categoryRepository.Add(newCategory);
+
+            // Загружаем обновлённый список
+            LoadCategories();
+
+            // Выделяем новую категорию
+            _selectedCategory = _categories.FirstOrDefault(c => c.Id == newId);
+            if (_selectedCategory != null)
+            {
+                categoriesDataGrid.SelectedItem = _selectedCategory;
+                categoriesDataGrid.ScrollIntoView(_selectedCategory);
+            }
 
             categoryNameTextBox.Text = "Новая категория";
         }
 
         private void CategoriesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _selectedCategory = categoriesDataGrid.SelectedItem as CategoryItem;
+            _selectedCategory = categoriesDataGrid.SelectedItem as Category;
             if (_selectedCategory != null)
             {
                 descriptionTextBox.Text = _selectedCategory.Description;
@@ -120,10 +122,21 @@ namespace UI
         {
             if (_selectedCategory != null)
             {
+                // Обновляем описание
                 _selectedCategory.Description = descriptionTextBox.Text;
-                categoriesDataGrid.Items.Refresh();
-                MessageBox.Show("Изменения сохранены", "Успех",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // Сохраняем в репозитории
+                if (_categoryRepository.Update(_selectedCategory))
+                {
+                    categoriesDataGrid.Items.Refresh();
+                    MessageBox.Show("Изменения сохранены", "Успех",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка при сохранении изменений", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
@@ -136,10 +149,13 @@ namespace UI
         {
             if (_selectedCategory != null)
             {
-                if (_selectedCategory.RecipesCount > 0)
+                // Проверяем, есть ли рецепты в этой категории
+                var recipesInCategory = _recipeRepository.GetByCategory(_selectedCategory.Id);
+
+                if (recipesInCategory.Any())
                 {
-                    MessageBox.Show("Нельзя удалить категорию, содержащую рецепты", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Нельзя удалить категорию '{_selectedCategory.Name}'. В ней есть {recipesInCategory.Count} рецептов.",
+                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
@@ -149,9 +165,21 @@ namespace UI
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    _categories.Remove(_selectedCategory);
-                    _selectedCategory = null;
-                    descriptionTextBox.Text = "";
+                    if (_categoryRepository.Delete(_selectedCategory.Id))
+                    {
+                        // Удаляем из коллекции
+                        _categories.Remove(_selectedCategory);
+                        _selectedCategory = null;
+                        descriptionTextBox.Text = "";
+
+                        MessageBox.Show("Категория удалена", "Успех",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Ошибка при удалении категории", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
             else

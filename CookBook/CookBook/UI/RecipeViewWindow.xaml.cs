@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using Data.InMemory;
+using Data.Interfaces;
+using Domain;
+using Interfaces;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using UI;
 
 namespace UI
@@ -26,35 +20,91 @@ namespace UI
             public string Notes { get; set; } = string.Empty;
         }
 
-        private ObservableCollection<IngredientRow> _ingredients = new();
+        private readonly ObservableCollection<IngredientRow> _ingredients = new();
+        private readonly Recipe _recipe;
+        private readonly IRecipeIngredientRepository _recipeIngredientRepository;
+        private readonly IIngredientRepository _ingredientRepository;
+        private readonly ICategoryRepository _categoryRepository; // Добавили для получения названия категории
 
-        public RecipeViewWindow()
+        // Конструктор с Dependency Injection
+        public RecipeViewWindow(
+            Recipe recipe,
+            IRecipeIngredientRepository recipeIngredientRepository,
+            IIngredientRepository ingredientRepository,
+            ICategoryRepository categoryRepository)
         {
             InitializeComponent();
 
-            // Заполняем тестовыми данными
-            titleTextBlock.Text = "Картофель по-деревенски";
-            categoryTextBlock.Text = "Основные блюда";
-            difficultyTextBlock.Text = "Легкий";
-            timeTextBlock.Text = "45 мин.";
-            servingsTextBlock.Text = "4";
-            descriptionTextBlock.Text = "Вкусное и простое блюдо из картофеля с ароматными травами.";
-            instructionsTextBox.Text = "1. Картофель помыть и нарезать дольками.\n2. Смешать с маслом и специями.\n3. Запекать в духовке 30-40 минут при 200°C.";
+            _recipe = recipe;
+            _recipeIngredientRepository = recipeIngredientRepository;
+            _ingredientRepository = ingredientRepository;
+            _categoryRepository = categoryRepository;
 
-            // Тестовые ингредиенты
-            _ingredients.Add(new IngredientRow { Name = "Картофель", Quantity = 1, Unit = "кг" });
-            _ingredients.Add(new IngredientRow { Name = "Масло оливковое", Quantity = 3, Unit = "ст.л." });
-            _ingredients.Add(new IngredientRow { Name = "Чеснок", Quantity = 3, Unit = "зуб." });
-            _ingredients.Add(new IngredientRow { Name = "Розмарин", Quantity = 1, Unit = "ч.л.", Notes = "сушеный" });
-            _ingredients.Add(new IngredientRow { Name = "Соль", Quantity = 1, Unit = "ч.л." });
+            LoadRecipeData();
+            LoadIngredients();
+        }
+
+        private void LoadRecipeData()
+        {
+            if (_recipe == null) return;
+
+            titleTextBlock.Text = _recipe.Title;
+
+            // Получаем название категории из репозитория
+            var category = _categoryRepository.GetById(_recipe.CategoryId);
+            categoryTextBlock.Text = $"Категория: {category?.Name ?? "Без категории"}";
+
+            difficultyTextBlock.Text = $"Сложность: {_recipe.DifficultyLevel}";
+            timeTextBlock.Text = $"Время приготовления: {_recipe.PreparationTime + _recipe.CookingTime} мин.";
+            servingsTextBlock.Text = $"Порции: {_recipe.Servings}";
+
+            if (!string.IsNullOrEmpty(_recipe.Description))
+            {
+                descriptionTextBlock.Text = _recipe.Description;
+            }
+            else
+            {
+                descriptionTextBlock.Text = "Описание отсутствует";
+            }
+
+            instructionsTextBox.Text = _recipe.Instructions;
+
+            // Показываем кнопку покупки для премиум рецептов
+            buyButton.Visibility = _recipe.IsPremium ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void LoadIngredients()
+        {
+            if (_recipe == null) return;
+
+            _ingredients.Clear();
+            var recipeIngredients = _recipeIngredientRepository.GetByRecipeId(_recipe.Id);
+
+            foreach (var recipeIngredient in recipeIngredients)
+            {
+                var ingredient = _ingredientRepository.GetById(recipeIngredient.IngredientId);
+                if (ingredient != null)
+                {
+                    _ingredients.Add(new IngredientRow
+                    {
+                        Name = ingredient.Name,
+                        Quantity = recipeIngredient.Quantity,
+                        Unit = ingredient.Unit,
+                        Notes = recipeIngredient.Notes ?? ""
+                    });
+                }
+            }
 
             ingredientsDataGrid.ItemsSource = _ingredients;
         }
 
+
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            var editWindow = new RecipeEditWindow();
-            editWindow.ShowDialog();
+            // Для редактирования нужно передать репозитории
+            // В этом окне пока просто закрываем
+            MessageBox.Show("Для редактирования используйте главное окно", "Информация",
+                MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -64,7 +114,7 @@ namespace UI
 
         private void BuyButton_Click(object sender, RoutedEventArgs e)
         {
-            var licenseWindow = new LicenseWindow();
+            var licenseWindow = new LicenseWindow(new LicenseRepository());
             licenseWindow.ShowDialog();
         }
     }

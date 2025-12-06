@@ -1,11 +1,12 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using Data.Interfaces;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using OxyPlot;
-using OxyPlot.Series;
-using OxyPlot.Axes;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace UI
 {
@@ -32,6 +33,18 @@ namespace UI
 
         public StatisticsWindow()
         {
+            InitializeComponent();
+            DataContext = this;
+            GenerateTestData();
+            InitializePlotModels();
+            UpdateStatistics();
+        }
+
+        private IRecipeRepository _recipeRepository;
+
+        public StatisticsWindow(IRecipeRepository recipeRepository)
+        {
+            _recipeRepository = recipeRepository;
             InitializeComponent();
             DataContext = this;
             GenerateTestData();
@@ -145,7 +158,7 @@ namespace UI
 
         private void UpdateLineChart()
         {
-            // Группировка по месяцам
+            
             var monthlyData = _recipes
                 .GroupBy(r => new { r.CreatedDate.Year, r.CreatedDate.Month })
                 .Select(g => new
@@ -222,13 +235,13 @@ namespace UI
 
         private void PeriodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Здесь можно фильтровать данные по периоду
+           
             UpdateAllCharts();
         }
 
         private void StatTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Здесь можно менять тип отображаемой статистики
+            
             UpdateAllCharts();
         }
 
@@ -244,7 +257,7 @@ namespace UI
             UpdateLineChart();
             UpdateStatistics();
 
-            // Обновление моделей для отображения
+           
             PieModel.InvalidatePlot(true);
             BarModel.InvalidatePlot(true);
             LineModel.InvalidatePlot(true);

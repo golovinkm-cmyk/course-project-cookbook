@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CookBook.Domain
+namespace Domain
 {
     public class License
     {

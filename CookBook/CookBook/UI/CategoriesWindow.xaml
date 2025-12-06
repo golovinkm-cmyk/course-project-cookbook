@@ -27,12 +27,14 @@
                   AutoGenerateColumns="False" Margin="0,0,0,15"
                   SelectionMode="Single" SelectionChanged="CategoriesDataGrid_SelectionChanged">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
                 <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="200"/>
                 <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="300"/>
                 <DataGridTextColumn Header="Дата создания" 
-                                   Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" Width="120"/>
-                <DataGridTextColumn Header="Кол-во рецептов" Binding="{Binding RecipesCount}" Width="100"/>
+                       Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" Width="120"/>
+                <!-- RecipesCount нужно будет добавить как свойство в Domain.Category или создать ViewModel -->
             </DataGrid.Columns>
+
         </DataGrid>
 
         <!-- Панель редактирования -->

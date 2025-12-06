@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "UI\UI.csproj", "{8E03
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{0CFEB5BD-8B41-4D6C-A9F8-EF40B251B151}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Interfaces", "Data.Interfaces\Data.Interfaces.csproj", "{59F0410F-5D78-463C-8DF6-A16CE64D71DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.InMemory", "Data.InMemory\Data.InMemory.csproj", "{5212BA89-013A-4F34-AE72-7842C807CB16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{0CFEB5BD-8B41-4D6C-A9F8-EF40B251B151}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CFEB5BD-8B41-4D6C-A9F8-EF40B251B151}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CFEB5BD-8B41-4D6C-A9F8-EF40B251B151}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59F0410F-5D78-463C-8DF6-A16CE64D71DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59F0410F-5D78-463C-8DF6-A16CE64D71DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59F0410F-5D78-463C-8DF6-A16CE64D71DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59F0410F-5D78-463C-8DF6-A16CE64D71DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5212BA89-013A-4F34-AE72-7842C807CB16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5212BA89-013A-4F34-AE72-7842C807CB16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5212BA89-013A-4F34-AE72-7842C807CB16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5212BA89-013A-4F34-AE72-7842C807CB16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
