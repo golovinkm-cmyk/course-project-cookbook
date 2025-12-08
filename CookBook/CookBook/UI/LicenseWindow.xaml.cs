@@ -18,7 +18,7 @@ namespace UI
 {
     public partial class LicenseWindow : Window
     {
-        public readonly ILicenseRepository _licenseRepository;
+        private readonly ILicenseRepository _licenseRepository; // ТОЛЬКО ОДИН РАЗ
 
         // ОДИН конструктор с Dependency Injection
         public LicenseWindow(ILicenseRepository licenseRepository)
@@ -197,15 +197,6 @@ namespace UI
                 activationStatusTextBlock.Text = "Ошибка: Лицензионный ключ не найден";
                 activationStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
             }
-        }
-        private ILicenseRepository _licenseRepository;
-
-        public LicenseWindow(ILicenseRepository licenseRepository)
-        {
-            _licenseRepository = licenseRepository;
-            InitializeComponent();
-            licenseTypeComboBox.SelectedIndex = 0;
-            UpdatePrice();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

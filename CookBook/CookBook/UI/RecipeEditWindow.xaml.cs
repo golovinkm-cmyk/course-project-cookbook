@@ -32,6 +32,17 @@ namespace UI
         }
 
         private ObservableCollection<IngredientRow> _ingredients = new();
+        private object categoryComboBox;
+        private object difficultyComboBox;
+        private object titleTextBox;
+        private object servingsUpDown;
+        private object ingredientsDataGrid;
+        private object descriptionTextBox;
+        private object instructionsTextBox;
+        private object preparationTimeUpDown;
+        private object cookingTimeUpDown;
+        private object favoriteCheckBox;
+        private object premiumCheckBox;
 
         public RecipeEditWindow(
             IRecipeRepository recipeRepository,
@@ -49,6 +60,11 @@ namespace UI
             _recipeId = recipeId;
 
             InitializeData();
+        }
+
+        private void InitializeComponent()
+        {
+            throw new NotImplementedException();
         }
 
         private void InitializeData()
