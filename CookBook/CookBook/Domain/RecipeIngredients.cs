@@ -10,6 +10,7 @@
 
         public virtual Recipe? Recipe { get; set; }
         public virtual Ingredient? Ingredient { get; set; }
+        public string? Unit { get; set; }
 
         public RecipeIngredient() { }
 
