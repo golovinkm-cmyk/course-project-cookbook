@@ -42,14 +42,33 @@ namespace UI
 
         private IRecipeRepository _recipeRepository;
 
-        public StatisticsWindow(IRecipeRepository recipeRepository)
+        public StatisticsWindow(IRecipeRepository recipeRepository = null)
         {
             _recipeRepository = recipeRepository;
+
+            // Инициализируем модели ДО любых обращений
+            PieModel = new PlotModel();
+            BarModel = new PlotModel();
+            LineModel = new PlotModel();
+
             InitializeComponent();
             DataContext = this;
-            GenerateTestData();
             InitializePlotModels();
+            GenerateTestData();
+            
             UpdateStatistics();
+        }
+
+        private void InitializePlotModels()
+        {
+            PieModel.Title = "Распределение рецептов по сложности";
+            UpdatePieChart();
+
+            BarModel.Title = "Количество рецептов по категориям";
+            UpdateBarChart();
+
+            LineModel.Title = "Динамика добавления рецептов";
+            UpdateLineChart();
         }
 
         private void GenerateTestData()
@@ -73,20 +92,7 @@ namespace UI
             }
         }
 
-        private void InitializePlotModels()
-        {
-            // Круговая диаграмма - распределение по сложности
-            PieModel = new PlotModel { Title = "Распределение рецептов по сложности" };
-            UpdatePieChart();
-
-            // Столбчатая диаграмма - по категориям
-            BarModel = new PlotModel { Title = "Количество рецептов по категориям" };
-            UpdateBarChart();
-
-            // Линейный график - по месяцам
-            LineModel = new PlotModel { Title = "Динамика добавления рецептов" };
-            UpdateLineChart();
-        }
+        
 
         private void UpdatePieChart()
         {
@@ -103,6 +109,8 @@ namespace UI
                 AngleSpan = 360,
                 StartAngle = 0
             };
+             if (PieModel == null)
+        PieModel = new PlotModel { Title = "Распределение рецептов по сложности" };
 
             foreach (var group in difficultyGroups)
             {
@@ -210,6 +218,10 @@ namespace UI
 
         private void UpdateStatistics()
         {
+            // Проверяем, инициализированы ли элементы управления
+            if (totalRecipesText == null || favoriteRecipesText == null || premiumRecipesText == null)
+                return;
+
             // Обновление текстовой статистики
             totalRecipesText.Text = _recipes.Count.ToString();
             favoriteRecipesText.Text = _recipes.Count(r => r.IsFavorite).ToString();
@@ -217,19 +229,24 @@ namespace UI
 
             if (_recipes.Any())
             {
-                avgCookingTimeText.Text = $"{(int)_recipes.Average(r => r.TotalTime)} мин.";
+                if (avgCookingTimeText != null)
+                    avgCookingTimeText.Text = $"{(int)_recipes.Average(r => r.TotalTime)} мин.";
 
                 var mostPopularDifficulty = _recipes
                     .GroupBy(r => r.Difficulty)
                     .OrderByDescending(g => g.Count())
                     .FirstOrDefault();
-                mostPopularDifficultyText.Text = mostPopularDifficulty?.Key ?? "-";
+
+                if (mostPopularDifficultyText != null)
+                    mostPopularDifficultyText.Text = mostPopularDifficulty?.Key ?? "-";
 
                 var mostPopularCategory = _recipes
                     .GroupBy(r => r.Category)
                     .OrderByDescending(g => g.Count())
                     .FirstOrDefault();
-                mostPopularCategoryText.Text = mostPopularCategory?.Key ?? "-";
+
+                if (mostPopularCategoryText != null)
+                    mostPopularCategoryText.Text = mostPopularCategory?.Key ?? "-";
             }
         }
 
@@ -257,10 +274,9 @@ namespace UI
             UpdateLineChart();
             UpdateStatistics();
 
-           
-            PieModel.InvalidatePlot(true);
-            BarModel.InvalidatePlot(true);
-            LineModel.InvalidatePlot(true);
+            PieModel?.InvalidatePlot(true);
+            BarModel?.InvalidatePlot(true);
+            LineModel?.InvalidatePlot(true);
         }
     }
 }

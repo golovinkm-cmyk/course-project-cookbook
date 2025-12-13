@@ -21,16 +21,31 @@ namespace UI
         private ObservableCollection<Recipe> _recipes = new();
         private ObservableCollection<Category> _categories = new();
 
-        public MainWindow()
+        public MainWindow() : this(
+        new RecipeRepository(),
+        new CategoryRepository(),
+        new IngredientRepository(),
+        new RecipeIngredientRepository(),
+        new LicenseRepository())
+        {
+        }
+
+        // Добавляем новый конструктор с параметрами
+        public MainWindow(
+            IRecipeRepository recipeRepository,
+            ICategoryRepository categoryRepository,
+            IIngredientRepository ingredientRepository,
+            IRecipeIngredientRepository recipeIngredientRepository,
+            ILicenseRepository licenseRepository)
         {
             InitializeComponent();
 
             // Инициализация репозиториев
-            _recipeRepository = new RecipeRepository();
-            _categoryRepository = new CategoryRepository();
-            _ingredientRepository = new IngredientRepository();
-            _recipeIngredientRepository = new RecipeIngredientRepository();
-            _licenseRepository = new LicenseRepository();
+            _recipeRepository = recipeRepository;
+            _categoryRepository = categoryRepository;
+            _ingredientRepository = ingredientRepository;
+            _recipeIngredientRepository = recipeIngredientRepository;
+            _licenseRepository = licenseRepository;
 
             // Загрузка данных
             LoadRecipes();

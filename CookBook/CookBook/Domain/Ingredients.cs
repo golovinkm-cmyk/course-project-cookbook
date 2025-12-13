@@ -14,6 +14,7 @@ namespace Domain
         public decimal? Protein { get; set; }
         public decimal? Fat { get; set; }
         public decimal? Carbs { get; set; }
+        public decimal? VitaminC { get; set; } // Добавляем это свойство
 
         public virtual ICollection<RecipeIngredient>? RecipeIngredients { get; set; }
 
