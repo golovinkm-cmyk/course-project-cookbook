@@ -1,0 +1,126 @@
+﻿<Window x:Class="UI.Views.LicenseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Лицензия" 
+        Height="500" Width="500"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="10">
+        <TabControl>
+            <!-- Вкладка покупки -->
+            <TabItem Header="Купить лицензию">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="Покупка лицензии" FontSize="16" FontWeight="Bold"
+                                  Margin="0,0,0,10"/>
+
+                        <!-- Тип лицензии -->
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Тип лицензии:" FontWeight="Bold"/>
+                            <ComboBox x:Name="LicenseTypeComboBox" 
+                                     SelectedIndex="0">
+                                <ComboBoxItem Content="Месячная - 299 руб." Tag="299"/>
+                                <ComboBoxItem Content="Годовая - 1999 руб." Tag="1999"/>
+                                <ComboBoxItem Content="Пожизненная - 4999 руб." Tag="4999"/>
+                            </ComboBox>
+                            <TextBlock x:Name="PriceTextBlock" 
+                                      FontWeight="Bold" Foreground="Green"
+                                      Margin="0,5,0,0"/>
+                        </StackPanel>
+
+                        <!-- Данные покупателя -->
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Ваше имя:" FontWeight="Bold"/>
+                            <TextBox x:Name="CustomerNameTextBox"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Email:" FontWeight="Bold"/>
+                            <TextBox x:Name="CustomerEmailTextBox"/>
+                        </StackPanel>
+
+                        <!-- Данные карты -->
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Номер карты:" FontWeight="Bold"/>
+                            <TextBox x:Name="CardNumberTextBox" MaxLength="19"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Срок (ММ/ГГ):" FontWeight="Bold"/>
+                                <TextBox x:Name="CardExpiryTextBox" MaxLength="5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="CVV:" FontWeight="Bold"/>
+                                <TextBox x:Name="CardCvvTextBox" MaxLength="3"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Владелец:" FontWeight="Bold"/>
+                                <TextBox x:Name="CardHolderTextBox"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Соглашение -->
+                        <CheckBox x:Name="AgreementCheckBox" 
+                                 Content="Я согласен с лицензионным соглашением"
+                                 Margin="0,0,0,10"/>
+
+                        <!-- Кнопка покупки -->
+                        <Button Content="Купить" Width="100" 
+                               Click="BuyButton_Click"
+                               HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Вкладка активации -->
+            <TabItem Header="Активировать ключ">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Активация лицензии" FontSize="16" FontWeight="Bold"
+                              Margin="0,0,0,10"/>
+
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="Лицензионный ключ:" FontWeight="Bold"/>
+                        <TextBox x:Name="LicenseKeyTextBox" Height="25"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="Ваше имя:" FontWeight="Bold"/>
+                        <TextBox x:Name="ActivationNameTextBox"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="Email:" FontWeight="Bold"/>
+                        <TextBox x:Name="ActivationEmailTextBox"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock x:Name="ActivationStatusText" 
+                                  Foreground="Gray" Margin="0,0,0,10"/>
+
+                        <Button Content="Активировать" Width="100"
+                               Click="ActivateButton_Click"
+                               HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <!-- Кнопка закрытия -->
+        <Button Content="Закрыть" Width="80" Height="30"
+               HorizontalAlignment="Right" VerticalAlignment="Bottom"
+               Margin="0,0,10,10"
+               Click="CloseButton_Click"/>
+    </Grid>
+</Window>

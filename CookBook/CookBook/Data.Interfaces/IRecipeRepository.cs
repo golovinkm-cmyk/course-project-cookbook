@@ -1,19 +1,17 @@
 ﻿using System.Collections.Generic;
+using Data.Interfaces.Filters;
 using Domain;
+using Domain.Entities;
 
 namespace Data.Interfaces
 {
-    public interface IRecipeRepository
+    public interface IRecipeRepository : IRepository<Recipe>
     {
-        int Add(Recipe recipe);
-        Recipe? GetById(int id);
-        List<Recipe> GetAll();
-        bool Update(Recipe recipe);
-        bool Delete(int id);
-
-        // Дополнительные методы
-        List<Recipe> GetByCategory(int categoryId);
-        List<Recipe> GetFavoriteRecipes();
-        List<Recipe> SearchRecipes(string searchTerm);
+        IEnumerable<Recipe> GetByCategory(int categoryId);
+        IEnumerable<Recipe> GetFavorites();
+        IEnumerable<Recipe> Search(string keyword);
+        IEnumerable<Recipe> GetPremiumRecipes();
+        IEnumerable<Recipe> GetRecipesWithIngredients();
+        IEnumerable<Recipe> GetFiltered(RecipeFilter filter);
     }
 }

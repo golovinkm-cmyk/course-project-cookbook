@@ -1,30 +1,30 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Data.SqlServer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace Data.SqlServer
+namespace CookBook.Data.SqlServer;
+
+public class CookBookDbContextFactory : IDesignTimeDbContextFactory<CookBookDbContext>
 {
-    public class CookbookDbContextFactory : IDesignTimeDbContextFactory<CookbookDbContext>
+    public CookBookDbContext CreateDbContext(string[] args)
     {
-        public CookbookDbContext CreateDbContext(string[] args)
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.database.json")
-                .Build();
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.database.json")
+            .Build();
 
-            return CreateDbContext(configuration);
-        }
+        return CreateDbContext(configuration);
+    }
 
-        public CookbookDbContext CreateDbContext(IConfiguration configuration)
-        {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+    public CookBookDbContext CreateDbContext(IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            var optionsBuilder = new DbContextOptionsBuilder<CookbookDbContext>();
-            optionsBuilder.UseSqlServer(connectionString);
+        var optionsBuilder = new DbContextOptionsBuilder<CookBookDbContext>();
+        optionsBuilder.UseSqlServer(connectionString);
 
-            return new CookbookDbContext(optionsBuilder.Options);
-        }
+        return new CookBookDbContext(optionsBuilder.Options);
     }
 }

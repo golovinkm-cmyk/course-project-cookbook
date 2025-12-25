@@ -1,0 +1,154 @@
+﻿<Window x:Class="UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI.Views"
+        mc:Ignorable="d"
+        Title="Персональная кулинарная книга" 
+        Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок и панель поиска -->
+        <StackPanel Grid.Row="0" Margin="10">
+            <TextBlock Text="Персональная кулинарная книга" 
+                      FontSize="24" FontWeight="Bold"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBox x:Name="SearchTextBox" Width="300" 
+                        Padding="5" VerticalContentAlignment="Center"
+                        TextChanged="SearchTextBox_TextChanged">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <Button Content="Поиск" Width="80" Click="SearchButton_Click"/>
+                <ComboBox x:Name="CategoryComboBox" Width="150" Margin="10,0,0,0"
+                         SelectionChanged="CategoryComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Все категории"/>
+                </ComboBox>
+                <ComboBox x:Name="DifficultyComboBox" Width="150" Margin="10,0,0,0"
+                         SelectionChanged="DifficultyComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Все уровни сложности"/>
+                    <ComboBoxItem Content="Легкий"/>
+                    <ComboBoxItem Content="Средний"/>
+                    <ComboBoxItem Content="Сложный"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Информация о демо-режиме -->
+            <Border x:Name="DemoInfoBorder" Background="LightYellow" 
+                   BorderBrush="Orange" BorderThickness="1" 
+                   Padding="10" Margin="0,10,0,0"
+                   Visibility="{Binding IsDemoMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⚠️ ДЕМО-РЕЖИМ: " FontWeight="Bold"/>
+                    <TextBlock Text="Доступно рецептов: 5 из 10. "/>
+                    <TextBlock Text="Премиум рецепты заблокированы. "/>
+                    <Button Content="Купить полную версию" 
+                           Click="BuyPremiumButton_Click"
+                           Margin="10,0,0,0"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Основная область с рецептами -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Список рецептов -->
+            <DataGrid x:Name="RecipesDataGrid" AutoGenerateColumns="False"
+                     SelectionMode="Single" IsReadOnly="True"
+                     SelectionChanged="RecipesDataGrid_SelectionChanged">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="200"/>
+                    <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="120"/>
+                    <DataGridTextColumn Header="Сложность" Binding="{Binding DifficultyLevel}" Width="100"/>
+                    <DataGridTextColumn Header="Время" Binding="{Binding TotalTime}" Width="80">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="TotalTime">
+                                <Binding.Converter>
+                                    <local:MinutesToTimeConverter/>
+                                </Binding.Converter>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridCheckBoxColumn Header="Избранное" Binding="{Binding IsFavorite}" Width="80"/>
+                    <DataGridTextColumn Header="Порции" Binding="{Binding Servings}" Width="80"/>
+                    <DataGridTemplateColumn Header="Статус" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding IsPremium, Converter={StaticResource PremiumToTextConverter}}"/>
+                                    <TextBlock Text=" " Visibility="{Binding IsPremium, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPremium}" Value="True">
+                                                        <Setter Property="Text" Value="🔒"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Панель управления -->
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" Width="150">
+                <Button Content="➕ Добавить рецепт" Click="AddRecipeButton_Click"/>
+                <Button Content="✏️ Редактировать" x:Name="EditButton" 
+                       Click="EditRecipeButton_Click" IsEnabled="False"/>
+                <Button Content="👁 Просмотреть" x:Name="ViewButton" 
+                       Click="ViewRecipeButton_Click" IsEnabled="False"/>
+                <Button Content="⭐ В избранное" x:Name="FavoriteButton" 
+                       Click="ToggleFavoriteButton_Click" IsEnabled="False"/>
+                <Button Content="🗑 Удалить" x:Name="DeleteButton" 
+                       Click="DeleteRecipeButton_Click" IsEnabled="False"/>
+                <Separator Margin="0,10"/>
+                <Button Content="📊 Статистика" Click="StatisticsButton_Click"/>
+                <Button Content="📂 Категории" Click="CategoriesButton_Click"/>
+                <Separator Margin="0,10"/>
+                <Button Content="🔑 Лицензия" Click="LicenseButton_Click"/>
+                <Button Content="🔄 Обновить" Click="RefreshButton_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Статус бар -->
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText" Text="Готово"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock>
+                    <Run Text="Рецептов: "/>
+                    <Run x:Name="RecipeCountText" Text="0"/>
+                    <Run Text=" | "/>
+                    <Run Text="Режим: "/>
+                    <Run x:Name="ModeText" Text="Демо"/>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
