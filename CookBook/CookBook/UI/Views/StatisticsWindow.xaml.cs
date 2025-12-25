@@ -23,5 +23,17 @@ namespace UI.Views
         {
             InitializeComponent();
         }
+
+        private void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для применения файла
+            MessageBox.Show("Применение файла");
+        }
+
+        private void ResetFilterButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для сброса файла
+            MessageBox.Show("Сброс файла");
+        }
     }
 }

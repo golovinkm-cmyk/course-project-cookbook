@@ -23,5 +23,24 @@ namespace UI.Views
         {
             InitializeComponent();
         }
+
+        // Добавьте эти методы в класс LicenseWindow
+        private void BuyButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для кнопки покупки лицензии
+            MessageBox.Show("Функционал покупки лицензии");
+        }
+
+        private void ActivateButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для активации лицензии
+            MessageBox.Show("Функционал активации лицензии");
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Закрытие окна
+            this.Close();
+        }
     }
 }

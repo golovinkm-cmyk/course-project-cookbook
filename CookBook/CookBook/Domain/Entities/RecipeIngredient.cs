@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Domain.Entities;
 
-namespace Domain.Entities
+public class RecipeIngredient
 {
-    public class RecipeIngredient
-    {
-        public int Id { get; set; }
-        public int RecipeId { get; set; }
-        public int IngredientId { get; set; }
+    public int Id { get; set; }
+    public int RecipeId { get; set; }
+    public int IngredientId { get; set; }
+    public decimal Quantity { get; set; }
+    public string Unit { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 
-        public virtual Recipe? Recipe { get; set; }
-        public virtual Ingredient? Ingredient { get; set; }
-    }
+    // Навигационные свойства
+    public Recipe? Recipe { get; set; }
+    public Ingredient? Ingredient { get; set; }
 }

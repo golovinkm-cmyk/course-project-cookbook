@@ -4,6 +4,12 @@ using Services;
 using Interfaces;
 using UI.Views;
 using Data.InMemory;
+using Data.SqlServer;
+using Data.SqlServer.Repositories;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
+using CookBook.Data.SqlServer;
 
 namespace UI;
 
@@ -17,30 +23,84 @@ public partial class App : Application
     private StatisticsService? _statisticsService;
 
     private bool _isPremiumMode = false;
+    private CookBookDbContext? _dbContext;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // Для начала используем InMemory репозитории
-        InitializeInMemoryRepositories();
+        try
+        {
+            // Для разработки можно использовать InMemory репозитории
+            // Для продакшена - переключаемся на EF Core
+            bool useInMemory = false; // Измените на false для использования БД
 
-        // Проверяем лицензию
-        CheckLicense();
+            if (useInMemory)
+            {
+                InitializeInMemoryRepositories();
+            }
+            else
+            {
+                // 1. Чтение конфигурации из файла
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.database.json")
+                    .Build();
 
-        // Заполняем тестовыми данными
-        SeedTestData();
+                // 2. Создание DbContext через фабрику
+                var factory = new CookBookDbContextFactory();
+                _dbContext = factory.CreateDbContext(configuration);
 
-        // Открываем главное окно
-        var mainWindow = new MainWindow(
-            _recipeRepository!,
-            _categoryRepository!,
-            _ingredientRepository!,
-            _licenseService!,
-            _statisticsService!,
-            _isPremiumMode);
+                // 3. ВАЖНО: Применение миграций автоматически при запуске
+                _dbContext.Database.Migrate();
 
-        mainWindow.Show();
+                // 4. Создание EF Core репозиториев
+                _categoryRepository = new EfCategoryRepository(_dbContext);
+                _recipeRepository = new EfRecipeRepository(_dbContext);
+                _ingredientRepository = new EfIngredientRepository(_dbContext);
+                _licenseRepository = new EfLicenseRepository(_dbContext);
+
+                _licenseService = new LicenseService(_licenseRepository);
+                _statisticsService = new StatisticsService(_recipeRepository, _categoryRepository);
+            }
+
+            // Проверяем лицензию
+            CheckLicense();
+
+            // Заполняем тестовыми данными (только если БД пустая)
+            SeedTestDataIfNeeded();
+
+            // Открываем главное окно
+            var mainWindow = new MainWindow(
+                _recipeRepository!,
+                _categoryRepository!,
+                _ingredientRepository!,
+                _licenseService!,
+                _statisticsService!,
+                _isPremiumMode);
+
+            mainWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при запуске приложения: {ex.Message}\n\nДетали: {ex.InnerException?.Message}",
+                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            // В случае ошибки используем InMemory репозитории как запасной вариант
+            InitializeInMemoryRepositories();
+            CheckLicense();
+            SeedTestData();
+
+            var mainWindow = new MainWindow(
+                _recipeRepository!,
+                _categoryRepository!,
+                _ingredientRepository!,
+                _licenseService!,
+                _statisticsService!,
+                _isPremiumMode);
+
+            mainWindow.Show();
+        }
     }
 
     private void InitializeInMemoryRepositories()
@@ -58,6 +118,19 @@ public partial class App : Application
     {
         // Проверяем наличие активной лицензии
         _isPremiumMode = _licenseService!.IsPremiumActive();
+    }
+
+    private void SeedTestDataIfNeeded()
+    {
+        // Проверяем, есть ли уже данные в БД (проверяем по категориям)
+        if (_categoryRepository!.GetAll().Any())
+        {
+            // Данные уже есть, пропускаем заполнение
+            return;
+        }
+
+        // Заполняем тестовыми данными
+        SeedTestData();
     }
 
     private void SeedTestData()
@@ -157,9 +230,11 @@ public partial class App : Application
             }
         };
 
+        var allCategories = _categoryRepository!.GetAll().ToList();
+
         foreach (var recipe in testRecipes)
         {
-            var category = _categoryRepository!.GetAll()
+            var category = allCategories
                 .FirstOrDefault(c => c.Name == recipe.Category);
 
             _recipeRepository!.Add(new Domain.Entities.Recipe
@@ -173,35 +248,38 @@ public partial class App : Application
                 Instructions = $"Инструкция по приготовлению {recipe.Title}...",
                 Description = $"Описание рецепта {recipe.Title}",
                 IsFavorite = false,
-                IsPremium = recipe.IsPremium
+                IsPremium = recipe.IsPremium,
+                CreatedDate = DateTime.Now,
+                ModifiedDate = DateTime.Now
             });
         }
+
+        // Добавляем тестовую лицензию (для демонстрации премиум-режима)
+        _licenseRepository!.Add(new Domain.Entities.License
+        {
+            LicenseKey = "TEST1234567890ABCDEF",
+            LicenseType = "Годовая",
+            CustomerName = "Тестовый пользователь",
+            CustomerEmail = "test@example.com",
+            IsActive = true,
+            Amount = 2999.99m,
+            PurchaseDate = DateTime.Now,
+            ActivationDate = DateTime.Now,
+            ExpiryDate = DateTime.Now.AddYears(1)
+        });
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        // ВАЖНО: Освобождаем ресурсы DbContext при закрытии приложения
+        _dbContext?.Dispose();
+
+        base.OnExit(e);
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)
     {
         // Метод для переключения на EF Core при необходимости
-        // InitializeEfCoreRepositories();
-    }
-
-    private void InitializeEfCoreRepositories()
-    {
-        // Код для инициализации EF Core репозиториев
-        // var configuration = new ConfigurationBuilder()
-        //     .SetBasePath(Directory.GetCurrentDirectory())
-        //     .AddJsonFile("appsettings.database.json")
-        //     .Build();
-        //     
-        // var factory = new CookBook.Data.SqlServer.CookBookDbContextFactory();
-        // var context = factory.CreateDbContext(configuration);
-        // 
-        // // Применяем миграции
-        // context.Database.Migrate();
-        // 
-        // // Создаем репозитории
-        // _categoryRepository = new CookBook.Data.SqlServer.Repositories.EfCategoryRepository(context);
-        // _recipeRepository = new CookBook.Data.SqlServer.Repositories.EfRecipeRepository(context);
-        // _ingredientRepository = new CookBook.Data.SqlServer.Repositories.EfIngredientRepository(context);
-        // _licenseRepository = new CookBook.Data.SqlServer.Repositories.EfLicenseRepository(context);
+        // Оставлен для совместимости
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Data.Interfaces;
-using Data.SqlServer;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace Data.SqlServer.Repositories;
 
 public class EfIngredientRepository : IIngredientRepository
 {
@@ -18,7 +20,7 @@ public class EfIngredientRepository : IIngredientRepository
 
     public IEnumerable<Ingredient> GetAll()
     {
-        return _context.Ingredients.ToList();
+        return _context.Ingredients.AsNoTracking().ToList();
     }
 
     public int Add(Ingredient ingredient)
@@ -33,7 +35,10 @@ public class EfIngredientRepository : IIngredientRepository
         var existing = GetById(ingredient.Id);
         if (existing == null) return false;
 
-        _context.Entry(existing).CurrentValues.SetValues(ingredient);
+        existing.Name = ingredient.Name;
+        existing.Unit = ingredient.Unit;
+        existing.Category = ingredient.Category;
+
         _context.SaveChanges();
         return true;
     }
@@ -50,17 +55,16 @@ public class EfIngredientRepository : IIngredientRepository
 
     public Ingredient? GetByName(string name)
     {
-        // Используем String.Equals с игнорированием регистра
         return _context.Ingredients
-            .FirstOrDefault(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase));
+            .AsNoTracking()
+            .FirstOrDefault(i => i.Name == name);
     }
 
     public IEnumerable<Ingredient> GetByCategory(string category)
     {
-        // Используем безопасный подход с String.Equals
         return _context.Ingredients
-            .Where(i => i.Category != null &&
-                       string.Equals((string?)i.Category, category, StringComparison.OrdinalIgnoreCase))
+            .Where(i => i.Category == category)
+            .AsNoTracking()
             .ToList();
     }
 }

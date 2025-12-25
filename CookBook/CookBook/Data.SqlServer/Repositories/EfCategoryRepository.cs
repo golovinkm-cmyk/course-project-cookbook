@@ -1,10 +1,8 @@
-﻿
-using Domain.Entities;
-using Data.SqlServer;
+﻿using Domain.Entities;
 using Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CookBook.Data.SqlServer.Repositories;
+namespace Data.SqlServer.Repositories;
 
 public class EfCategoryRepository : ICategoryRepository
 {
@@ -22,7 +20,7 @@ public class EfCategoryRepository : ICategoryRepository
 
     public IEnumerable<Category> GetAll()
     {
-        return _context.Categories.ToList();
+        return _context.Categories.AsNoTracking().ToList();
     }
 
     public int Add(Category category)
@@ -38,7 +36,11 @@ public class EfCategoryRepository : ICategoryRepository
         var existing = GetById(category.Id);
         if (existing == null) return false;
 
-        _context.Entry(existing).CurrentValues.SetValues(category);
+        // Копируем свойства, кроме Id и CreatedDate
+        existing.Name = category.Name;
+        existing.Description = category.Description;
+        existing.ModifiedDate = DateTime.Now;
+
         _context.SaveChanges();
         return true;
     }
@@ -57,12 +59,14 @@ public class EfCategoryRepository : ICategoryRepository
     {
         return _context.Categories
             .Include(c => c.Recipes)
+            .AsNoTracking()
             .ToList();
     }
 
     public Category? GetByName(string name)
     {
         return _context.Categories
-            .FirstOrDefault(c => c.Name.ToLower() == name.ToLower());
+            .AsNoTracking()
+            .FirstOrDefault(c => c.Name == name);
     }
 }

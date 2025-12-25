@@ -7,126 +7,152 @@ using Interfaces;
 
 namespace UI.ViewModels;
 
-public class RecipeEditViewModel : INotifyPropertyChanged
+public class Recipe : INotifyPropertyChanged
 {
-    private readonly IRecipeRepository _recipeRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IIngredientRepository _ingredientRepository;
-    private readonly bool _isPremiumMode;
+    private string _title;
+    private string _description;
+    private string _instructions;
+    private int _preparationTime;
+    private int _cookingTime;
+    private int _servings;
+    private string _difficultyLevel;
+    private bool _isFavorite;
+    private bool _isPremium;
+    private int _categoryId;
 
-    private Recipe _recipe;
-    private string _windowTitle = "Новый рецепт";
-    private bool _canSave = false;
+    public event PropertyChangedEventHandler PropertyChanged;
 
-    public Recipe Recipe
+    public string Title
     {
-        get => _recipe;
+        get => _title;
         set
         {
-            _recipe = value;
-            OnPropertyChanged();
-            Validate();
-        }
-    }
-
-    public string WindowTitle
-    {
-        get => _windowTitle;
-        set
-        {
-            _windowTitle = value;
-            OnPropertyChanged();
-        }
-    }
-
-    public bool CanSave
-    {
-        get => _canSave;
-        set
-        {
-            _canSave = value;
-            OnPropertyChanged();
-        }
-    }
-
-    public bool IsPremiumMode => _isPremiumMode;
-
-    public ObservableCollection<Category> Categories { get; } = new();
-    public ObservableCollection<Ingredient> AvailableIngredients { get; } = new();
-    public ObservableCollection<RecipeIngredient> RecipeIngredients { get; } = new();
-
-    public RecipeEditViewModel(IRecipeRepository recipeRepository,
-                              ICategoryRepository categoryRepository,
-                              IIngredientRepository ingredientRepository,
-                              bool isPremiumMode,
-                              Recipe? existingRecipe = null)
-    {
-        _recipeRepository = recipeRepository;
-        _categoryRepository = categoryRepository;
-        _ingredientRepository = ingredientRepository;
-        _isPremiumMode = isPremiumMode;
-
-        if (existingRecipe != null)
-        {
-            Recipe = existingRecipe;
-            WindowTitle = $"Редактирование: {existingRecipe.Title}";
-
-            // Загружаем ингредиенты рецепта
-            // В реальном приложении здесь бы загружались из репозитория
-        }
-        else
-        {
-            Recipe = new Recipe
+            if (_title != value)
             {
-                Title = "",
-                Description = "",
-                Instructions = "",
-                PreparationTime = 0,
-                CookingTime = 0,
-                Servings = 1,
-                DifficultyLevel = "Средний",
-                IsFavorite = false,
-                IsPremium = false
-            };
+                _title = value;
+                OnPropertyChanged();
+            }
         }
-
-        LoadCategories();
-        LoadIngredients();
-
-        Recipe.PropertyChanged += (s, e) => Validate();
     }
 
-    private void LoadCategories()
+    public string Description
     {
-        Categories.Clear();
-        foreach (var category in _categoryRepository.GetAll())
+        get => _description;
+        set
         {
-            Categories.Add(category);
+            if (_description != value)
+            {
+                _description = value;
+                OnPropertyChanged();
+            }
         }
     }
 
-    private void LoadIngredients()
+    public string Instructions
     {
-        AvailableIngredients.Clear();
-        foreach (var ingredient in _ingredientRepository.GetAll())
+        get => _instructions;
+        set
         {
-            AvailableIngredients.Add(ingredient);
+            if (_instructions != value)
+            {
+                _instructions = value;
+                OnPropertyChanged();
+            }
         }
     }
 
-    private void Validate()
+    public int PreparationTime
     {
-        CanSave = !string.IsNullOrWhiteSpace(Recipe.Title) &&
-                 Recipe.CategoryId > 0 &&
-                 !string.IsNullOrWhiteSpace(Recipe.Instructions) &&
-                 Recipe.PreparationTime >= 0 &&
-                 Recipe.CookingTime >= 0 &&
-                 Recipe.Servings > 0;
+        get => _preparationTime;
+        set
+        {
+            if (_preparationTime != value)
+            {
+                _preparationTime = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public int CookingTime
+    {
+        get => _cookingTime;
+        set
+        {
+            if (_cookingTime != value)
+            {
+                _cookingTime = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    public int Servings
+    {
+        get => _servings;
+        set
+        {
+            if (_servings != value)
+            {
+                _servings = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string DifficultyLevel
+    {
+        get => _difficultyLevel;
+        set
+        {
+            if (_difficultyLevel != value)
+            {
+                _difficultyLevel = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsFavorite
+    {
+        get => _isFavorite;
+        set
+        {
+            if (_isFavorite != value)
+            {
+                _isFavorite = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsPremium
+    {
+        get => _isPremium;
+        set
+        {
+            if (_isPremium != value)
+            {
+                _isPremium = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public int CategoryId
+    {
+        get => _categoryId;
+        set
+        {
+            if (_categoryId != value)
+            {
+                _categoryId = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    protected virtual void OnPropertyChanged(string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

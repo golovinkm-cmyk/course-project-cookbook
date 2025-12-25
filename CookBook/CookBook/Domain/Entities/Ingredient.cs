@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Domain.Entities;
 
-namespace Domain.Entities
+public class Ingredient
 {
-    public class Ingredient
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Unit { get; set; }
+    public string? Category { get; set; }
 
-        public virtual ICollection<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
-        public required object Category { get; set; }
-        public required string Unit { get; set; }
-    }
+    // Навигационные свойства
+    public ICollection<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
 }

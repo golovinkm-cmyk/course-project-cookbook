@@ -1,10 +1,9 @@
 ﻿using Data.Interfaces;
 using Data.Interfaces.Filters;
 using Domain.Entities;
-using Data.SqlServer;
 using Microsoft.EntityFrameworkCore;
 
-namespace CookBook.Data.SqlServer.Repositories;
+namespace Data.SqlServer.Repositories;
 
 public class EfRecipeRepository : IRecipeRepository
 {
@@ -28,6 +27,7 @@ public class EfRecipeRepository : IRecipeRepository
     {
         return _context.Recipes
             .Include(r => r.Category)
+            .AsNoTracking()
             .ToList();
     }
 
@@ -45,8 +45,19 @@ public class EfRecipeRepository : IRecipeRepository
         var existing = GetById(recipe.Id);
         if (existing == null) return false;
 
-        recipe.ModifiedDate = DateTime.Now;
-        _context.Entry(existing).CurrentValues.SetValues(recipe);
+        // Копируем свойства
+        existing.Title = recipe.Title;
+        existing.CategoryId = recipe.CategoryId;
+        existing.Description = recipe.Description;
+        existing.Instructions = recipe.Instructions;
+        existing.PreparationTime = recipe.PreparationTime;
+        existing.CookingTime = recipe.CookingTime;
+        existing.Servings = recipe.Servings;
+        existing.DifficultyLevel = recipe.DifficultyLevel;
+        existing.IsFavorite = recipe.IsFavorite;
+        existing.IsPremium = recipe.IsPremium;
+        existing.ModifiedDate = DateTime.Now;
+
         _context.SaveChanges();
         return true;
     }
@@ -66,6 +77,7 @@ public class EfRecipeRepository : IRecipeRepository
         return _context.Recipes
             .Where(r => r.CategoryId == categoryId)
             .Include(r => r.Category)
+            .AsNoTracking()
             .ToList();
     }
 
@@ -74,6 +86,7 @@ public class EfRecipeRepository : IRecipeRepository
         return _context.Recipes
             .Where(r => r.IsFavorite)
             .Include(r => r.Category)
+            .AsNoTracking()
             .ToList();
     }
 
@@ -84,9 +97,10 @@ public class EfRecipeRepository : IRecipeRepository
 
         return _context.Recipes
             .Where(r => r.Title.Contains(keyword) ||
-                       (r.Description != null && r.Description.Contains(keyword)) ||
+                       r.Description.Contains(keyword) ||
                        r.Instructions.Contains(keyword))
             .Include(r => r.Category)
+            .AsNoTracking()
             .ToList();
     }
 
@@ -95,6 +109,7 @@ public class EfRecipeRepository : IRecipeRepository
         return _context.Recipes
             .Where(r => r.IsPremium)
             .Include(r => r.Category)
+            .AsNoTracking()
             .ToList();
     }
 
@@ -104,14 +119,13 @@ public class EfRecipeRepository : IRecipeRepository
             .Include(r => r.Category)
             .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
+            .AsNoTracking()
             .ToList();
     }
 
     public IEnumerable<Recipe> GetFiltered(RecipeFilter filter)
     {
-        var query = _context.Recipes
-            .Include(r => r.Category)
-            .AsQueryable();
+        var query = _context.Recipes.AsQueryable();
 
         if (filter.CategoryId.HasValue)
             query = query.Where(r => r.CategoryId == filter.CategoryId.Value);
@@ -120,7 +134,7 @@ public class EfRecipeRepository : IRecipeRepository
             query = query.Where(r => r.DifficultyLevel == filter.DifficultyLevel);
 
         if (filter.MaxCookingTime.HasValue)
-            query = query.Where(r => (r.PreparationTime + r.CookingTime) <= filter.MaxCookingTime.Value);
+            query = query.Where(r => r.TotalTime <= filter.MaxCookingTime.Value);
 
         if (filter.IsFavorite.HasValue)
             query = query.Where(r => r.IsFavorite == filter.IsFavorite.Value);
@@ -129,8 +143,7 @@ public class EfRecipeRepository : IRecipeRepository
             query = query.Where(r => r.IsPremium == filter.IsPremium.Value);
 
         if (!string.IsNullOrEmpty(filter.SearchKeyword))
-            query = query.Where(r => r.Title.Contains(filter.SearchKeyword) ||
-                                   (r.Description != null && r.Description.Contains(filter.SearchKeyword)));
+            query = query.Where(r => r.Title.Contains(filter.SearchKeyword));
 
         if (filter.StartDate.HasValue)
             query = query.Where(r => r.CreatedDate >= filter.StartDate.Value);
@@ -138,6 +151,9 @@ public class EfRecipeRepository : IRecipeRepository
         if (filter.EndDate.HasValue)
             query = query.Where(r => r.CreatedDate <= filter.EndDate.Value);
 
-        return query.ToList();
+        return query
+            .Include(r => r.Category)
+            .AsNoTracking()
+            .ToList();
     }
 }

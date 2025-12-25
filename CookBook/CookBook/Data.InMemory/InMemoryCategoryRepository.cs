@@ -1,8 +1,6 @@
-﻿
-using System.Xml.Linq;
-using Data.Interfaces;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Interfaces;
+
 
 namespace Data.InMemory;
 

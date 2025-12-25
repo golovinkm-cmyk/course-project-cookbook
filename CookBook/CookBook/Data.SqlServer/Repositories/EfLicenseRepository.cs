@@ -1,9 +1,8 @@
 ﻿using Data.Interfaces;
 using Domain.Entities;
-using Data.SqlServer;
+using Microsoft.EntityFrameworkCore;
 
-
-namespace CookBook.Data.SqlServer.Repositories;
+namespace Data.SqlServer.Repositories;
 
 public class EfLicenseRepository : ILicenseRepository
 {
@@ -21,13 +20,12 @@ public class EfLicenseRepository : ILicenseRepository
 
     public IEnumerable<License> GetAll()
     {
-        return _context.Licenses.ToList();
+        return _context.Licenses.AsNoTracking().ToList();
     }
 
     public int Add(License license)
     {
         license.PurchaseDate = DateTime.Now;
-        license.ActivationDate = DateTime.Now;
         _context.Licenses.Add(license);
         _context.SaveChanges();
         return license.Id;
@@ -38,7 +36,16 @@ public class EfLicenseRepository : ILicenseRepository
         var existing = GetById(license.Id);
         if (existing == null) return false;
 
-        _context.Entry(existing).CurrentValues.SetValues(license);
+        existing.LicenseKey = license.LicenseKey;
+        existing.LicenseType = license.LicenseType;
+        existing.CustomerName = license.CustomerName;
+        existing.CustomerEmail = license.CustomerEmail;
+        existing.IsActive = license.IsActive;
+        existing.Amount = license.Amount;
+        existing.ExpiryDate = license.ExpiryDate;
+        existing.ActivationDate = license.ActivationDate;
+        existing.CardLastFour = license.CardLastFour;
+
         _context.SaveChanges();
         return true;
     }
@@ -56,13 +63,17 @@ public class EfLicenseRepository : ILicenseRepository
     public License? GetByLicenseKey(string licenseKey)
     {
         return _context.Licenses
+            .AsNoTracking()
             .FirstOrDefault(l => l.LicenseKey == licenseKey);
     }
 
     public IEnumerable<License> GetActiveLicenses()
     {
+        var now = DateTime.Now;
         return _context.Licenses
-            .Where(l => l.IsActive)
+            .Where(l => l.IsActive &&
+                       (!l.ExpiryDate.HasValue || l.ExpiryDate.Value > now))
+            .AsNoTracking()
             .ToList();
     }
 
@@ -79,6 +90,8 @@ public class EfLicenseRepository : ILicenseRepository
     public bool IsValidLicense(string licenseKey)
     {
         var license = GetByLicenseKey(licenseKey);
-        return license != null && license.IsValid();
+        if (license == null) return false;
+
+        return license.IsActive && license.IsValid();
     }
 }

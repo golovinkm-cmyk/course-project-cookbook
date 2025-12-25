@@ -1,32 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Domain.Entities;
 
-namespace Domain.Entities
+public class License
 {
-    public class License
+    public int Id { get; set; }
+    public string LicenseKey { get; set; } = string.Empty;
+    public string LicenseType { get; set; } = string.Empty; // "Месячная", "Годовая"
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime PurchaseDate { get; set; }
+    public DateTime? ActivationDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public string? PaymentMethod { get; set; }
+    public string? PaymentStatus { get; set; }
+    public string? TransactionId { get; set; }
+    public string? CardLastFour { get; set; }
+
+    // Вычисляемое свойство для проверки валидности лицензии
+    public bool IsValid()
     {
-        public object PaymentStatus;
-        public object TransactionId;
+        if (!IsActive) return false;
 
-        public int Id { get; set; }
-        public string LicenseKey { get; set; } = string.Empty;
-        public string LicenseType { get; set; } = "Месячная";
-        public DateTime PurchaseDate { get; set; } = DateTime.Now;
-        public DateTime ActivationDate { get; set; } = DateTime.Now;
-        public DateTime? ExpiryDate { get; set; }
-        public bool IsActive { get; set; } = true;
-        public string CustomerName { get; set; } = string.Empty;
-        public string CustomerEmail { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
-        public string CardLastFour { get; set; } = string.Empty;
-        public object PaymentMethod { get; set; }
+        if (!ExpiryDate.HasValue) return true; // Бессрочная лицензия
 
-        public bool IsValid()
-        {
-            throw new NotImplementedException();
-        }
+        return ExpiryDate.Value > DateTime.Now;
     }
 }

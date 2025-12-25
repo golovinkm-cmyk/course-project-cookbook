@@ -23,5 +23,24 @@ namespace UI.Views
         {
             InitializeComponent();
         }
+
+        // Добавьте эти методы в класс RecipeEditWindow
+        private void AddIngredientButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для добавления ингредиента
+            MessageBox.Show("Добавление ингредиента");
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Логика для сохранения рецепта
+            MessageBox.Show("Сохранение рецепта");
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Закрытие окна без сохранения
+            this.Close();
+        }
     }
 }
