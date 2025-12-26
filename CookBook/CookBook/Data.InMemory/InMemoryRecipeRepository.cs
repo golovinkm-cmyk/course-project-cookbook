@@ -1,9 +1,7 @@
-﻿
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using Data.Interfaces;
 using Data.Interfaces.Filters;
 using Domain.Entities;
-
 
 namespace Data.InMemory;
 
@@ -86,24 +84,7 @@ public class InMemoryRecipeRepository : IRecipeRepository
     {
         var query = _recipes.AsEnumerable();
 
-        if (filter.CategoryId.HasValue)
-            query = query.Where(r => r.CategoryId == filter.CategoryId.Value);
-
-        if (!string.IsNullOrEmpty(filter.DifficultyLevel))
-            query = query.Where(r => r.DifficultyLevel == filter.DifficultyLevel);
-
-        if (filter.MaxCookingTime.HasValue)
-            query = query.Where(r => r.TotalTime <= filter.MaxCookingTime.Value);
-
-        if (filter.IsFavorite.HasValue)
-            query = query.Where(r => r.IsFavorite == filter.IsFavorite.Value);
-
-        if (filter.IsPremium.HasValue)
-            query = query.Where(r => r.IsPremium == filter.IsPremium.Value);
-
-        if (!string.IsNullOrEmpty(filter.SearchKeyword))
-            query = query.Where(r => r.Title.Contains(filter.SearchKeyword));
-
+        // Фильтрация по датам
         if (filter.StartDate.HasValue)
             query = query.Where(r => r.CreatedDate >= filter.StartDate.Value);
 

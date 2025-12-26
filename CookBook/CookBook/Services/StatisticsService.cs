@@ -3,11 +3,7 @@ using Data.Interfaces.Filters;
 using Domain.Statistics;
 using Interfaces;
 
-
-
-
-
-namespace Services;  // ← исправлено
+namespace Services;
 
 public class StatisticsService
 {
@@ -24,7 +20,7 @@ public class StatisticsService
     public IEnumerable<CategoryStatisticItem> GetRecipesByCategory(RecipeFilter filter)
     {
         var categories = _categoryRepository.GetAll().ToList();
-        var recipes = _recipeRepository.GetAll(); 
+        var recipes = ApplyFilter(_recipeRepository.GetAll(), filter).ToList();
 
         return categories
             .Select(c => new CategoryStatisticItem
@@ -39,7 +35,7 @@ public class StatisticsService
 
     public IEnumerable<DifficultyStatisticItem> GetRecipesByDifficulty(RecipeFilter filter)
     {
-        var recipes = _recipeRepository.GetAll(); 
+        var recipes = ApplyFilter(_recipeRepository.GetAll(), filter).ToList();
 
         return recipes
             .GroupBy(r => r.DifficultyLevel)
@@ -54,7 +50,7 @@ public class StatisticsService
 
     public IEnumerable<MonthStatisticItem> GetRecipesByMonth(RecipeFilter filter)
     {
-        var recipes = _recipeRepository.GetAll(); 
+        var recipes = ApplyFilter(_recipeRepository.GetAll(), filter).ToList();
 
         return recipes
             .GroupBy(r => new { r.CreatedDate.Year, r.CreatedDate.Month })
@@ -71,27 +67,43 @@ public class StatisticsService
 
     public RecipeStatistics GetRecipeStatistics(RecipeFilter filter)
     {
-        var recipes = _recipeRepository.GetAll(); // ← упростили
-        var recipesList = recipes.ToList();
+        var recipes = ApplyFilter(_recipeRepository.GetAll(), filter).ToList();
 
         return new RecipeStatistics
         {
-            TotalRecipes = recipesList.Count,
-            TotalCookingTime = recipesList.Sum(r => r.TotalTime),
-            AverageCookingTime = recipesList.Any() ?
-                (int)recipesList.Average(r => r.TotalTime) : 0,
-            FavoriteRecipes = recipesList.Count(r => r.IsFavorite),
-            PremiumRecipes = recipesList.Count(r => r.IsPremium)
+            TotalRecipes = recipes.Count,
+            TotalCookingTime = recipes.Sum(r => r.TotalTime),
+            AverageCookingTime = recipes.Any() ?
+                (int)recipes.Average(r => r.TotalTime) : 0,
+            FavoriteRecipes = recipes.Count(r => r.IsFavorite),
+            PremiumRecipes = recipes.Count(r => r.IsPremium)
         };
+    }
+
+    private IEnumerable<Domain.Entities.Recipe> ApplyFilter(
+        IEnumerable<Domain.Entities.Recipe> recipes, RecipeFilter filter)
+    {
+        var filteredRecipes = recipes;
+
+        if (filter.StartDate.HasValue)
+        {
+            filteredRecipes = filteredRecipes.Where(r => r.CreatedDate >= filter.StartDate.Value);
+        }
+
+        if (filter.EndDate.HasValue)
+        {
+            filteredRecipes = filteredRecipes.Where(r => r.CreatedDate <= filter.EndDate.Value);
+        }
+
+        return filteredRecipes;
     }
 }
 
 public class RecipeStatistics
 {
-    public int TotalRecipes { get; set; }
-    public int TotalCookingTime { get; set; } // в минутах
-    public int AverageCookingTime { get; set; } // в минутах
-    public int FavoriteRecipes { get; set; }
-    public int PremiumRecipes { get; set; }
+    public int TotalRecipes { get; init; }
+    public int TotalCookingTime { get; init; }
+    public int AverageCookingTime { get; init; }
+    public int FavoriteRecipes { get; init; }
+    public int PremiumRecipes { get; init; }
 }
-

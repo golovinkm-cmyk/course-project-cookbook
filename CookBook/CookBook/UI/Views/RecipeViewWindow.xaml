@@ -1,0 +1,87 @@
+﻿<Window x:Class="UI.Views.RecipeViewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Просмотр рецепта" 
+        Height="600" Width="800"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок и информация -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding Title}" 
+                      FontSize="24" FontWeight="Bold" Margin="0,0,0,5"/>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Категория: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding CategoryName}" Margin="0,0,20,0"/>
+
+                <TextBlock Text="Сложность рецепта: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding DifficultyLevel}" Margin="0,0,20,0"/>
+
+                <TextBlock Text="Время приготовления: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding TotalTime, StringFormat={}{0} мин}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                <TextBlock Text="Порций: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding Servings}" Margin="0,0,20,0"/>
+
+                <TextBlock Text="Подготовка: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding PreparationTime, StringFormat={}{0} мин}" Margin="0,0,20,0"/>
+
+                <TextBlock Text="Приготовление: " FontWeight="Bold"/>
+                <TextBlock Text="{Binding CookingTime, StringFormat={}{0} мин}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Описание и ингредиенты -->
+        <TabControl Grid.Row="1" Margin="0,10,0,0">
+            <TabItem Header="Описание">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock Text="{Binding Description}" 
+                              TextWrapping="Wrap" Margin="10"/>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Ингредиенты">
+                <DataGrid x:Name="IngredientsGrid" AutoGenerateColumns="False"
+                         ItemsSource="{Binding Ingredients}"
+                         IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ингредиент" 
+                                          Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Количество" 
+                                          Binding="{Binding Quantity}" Width="100"/>
+                        <DataGridTextColumn Header="Единица" 
+                                          Binding="{Binding Unit}" Width="80"/>
+                        <DataGridTextColumn Header="Примечания" 
+                                          Binding="{Binding Notes}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <TabItem Header="Инструкция">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock Text="{Binding Instructions}" 
+                              TextWrapping="Wrap" Margin="10"/>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" 
+                   HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Закрыть" Width="100" 
+                   Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

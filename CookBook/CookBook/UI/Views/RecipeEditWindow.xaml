@@ -5,142 +5,214 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Редактирование рецепта" 
-        Height="600" Width="800"
-        WindowStartupLocation="CenterOwner"><Grid Margin="10">
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+        Height="650" Width="800"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-    <!-- Заголовок -->
-    <TextBlock Grid.Row="0" Text="{Binding WindowTitle}"
-                  FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <!-- Заголовок -->
+        <TextBlock Grid.Row="0" Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                   FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
-    <!-- Основные поля -->
-    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-        <StackPanel>
-            <!-- Название -->
-            <StackPanel Margin="0,0,0,10">
-                <TextBlock Text="Название рецепта:" FontWeight="Bold"/>
-                <TextBox x:Name="TitleTextBox" Text="{Binding Recipe.Title, UpdateSourceTrigger=PropertyChanged}"
-                            MaxLength="200"/>
-            </StackPanel>
-
-            <!-- Категория и сложность -->
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                    <TextBlock Text="Категория:" FontWeight="Bold"/>
-                    <ComboBox x:Name="CategoryComboBox" 
-                                 ItemsSource="{Binding Categories}"
-                                 DisplayMemberPath="Name"
-                                 SelectedValuePath="Id"
-                                 SelectedValue="{Binding Recipe.CategoryId}"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Уровень сложности:" FontWeight="Bold"/>
-                    <ComboBox x:Name="DifficultyComboBox" 
-                                 SelectedItem="{Binding Recipe.DifficultyLevel}">
-                        <ComboBoxItem Content="Легкий"/>
-                        <ComboBoxItem Content="Средний"/>
-                        <ComboBoxItem Content="Сложный"/>
-                    </ComboBox>
-                </StackPanel>
-            </Grid>
-
-            <!-- Время приготовления -->
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                    <TextBlock Text="Подготовка (мин):" FontWeight="Bold"/>
-                    <TextBox x:Name="PrepTimeTextBox" 
-                                Text="{Binding Recipe.PreparationTime, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Margin="0,0,10,0">
-                    <TextBlock Text="Приготовление (мин):" FontWeight="Bold"/>
-                    <TextBox x:Name="CookTimeTextBox" 
-                                Text="{Binding Recipe.CookingTime, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="Порций:" FontWeight="Bold"/>
-                    <TextBox x:Name="ServingsTextBox" 
-                                Text="{Binding Recipe.Servings, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-            </Grid>
-
-            <!-- Описание -->
-            <StackPanel Margin="0,0,0,10">
-                <TextBlock Text="Описание:" FontWeight="Bold"/>
-                <TextBox x:Name="DescriptionTextBox" 
-                            Text="{Binding Recipe.Description}"
-                            AcceptsReturn="True" TextWrapping="Wrap"
-                            Height="60" VerticalScrollBarVisibility="Auto"/>
-            </StackPanel>
-
-            <!-- Ингредиенты -->
-            <StackPanel Margin="0,0,0,10">
-                <TextBlock Text="Ингредиенты:" FontWeight="Bold"/>
-                <DataGrid x:Name="IngredientsDataGrid" AutoGenerateColumns="False"
-                             ItemsSource="{Binding RecipeIngredients}"
-                             CanUserAddRows="True" CanUserDeleteRows="True"
-                             Height="150">
-                    <DataGrid.Columns>
-                        <DataGridComboBoxColumn Header="Ингредиент" Width="200"
-                                                   ItemsSource="{Binding AvailableIngredients}"
-                                                   DisplayMemberPath="Name"
-                                                   SelectedValuePath="Id"
-                                                   SelectedValueBinding="{Binding IngredientId}"/>
-                        <DataGridTextColumn Header="Количество" Width="100"
-                                               Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"/>
-                        <DataGridTextColumn Header="Примечания" Width="*"
-                                               Binding="{Binding Notes}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <Button Content="Добавить ингредиент" Click="AddIngredientButton_Click"
-                           Width="150" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-            </StackPanel>
-
-            <!-- Инструкция -->
-            <StackPanel Margin="0,0,0,10">
-                <TextBlock Text="Инструкция приготовления:" FontWeight="Bold"/>
-                <TextBox x:Name="InstructionsTextBox" 
-                            Text="{Binding Recipe.Instructions}"
-                            AcceptsReturn="True" TextWrapping="Wrap"
-                            Height="120" VerticalScrollBarVisibility="Auto"/>
-            </StackPanel>
-
-            <!-- Флажки -->
+        <!-- Основные поля -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <CheckBox Content="Добавить в избранное" 
-                             IsChecked="{Binding Recipe.IsFavorite}"
-                             Margin="0,0,0,5"/>
-                <CheckBox x:Name="PremiumCheckBox" Content="Премиум рецепт"
-                             IsChecked="{Binding Recipe.IsPremium}"
-                             IsEnabled="{Binding IsPremiumMode}"
-                             Margin="0,0,0,10"/>
-            </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+                <!-- Название -->
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="Название рецепта:" FontWeight="Bold"/>
+                    <TextBox x:Name="TitleTextBox" MaxLength="200"/>
+                </StackPanel>
 
-    <!-- Кнопки -->
-    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="Сохранить" Width="100" Click="SaveButton_Click" 
-                   IsEnabled="{Binding CanSave}"/>
-        <Button Content="Отмена" Width="100" Margin="10,0,0,0" 
-                   Click="CancelButton_Click"/>
-    </StackPanel>
-</Grid>
+                <!-- Категория и сложность -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Категория:" FontWeight="Bold"/>
+                        <ComboBox x:Name="CategoryComboBox"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Уровень сложности:" FontWeight="Bold"/>
+                        <ComboBox x:Name="DifficultyComboBox">
+                            <ComboBoxItem Content="Легкий"/>
+                            <ComboBoxItem Content="Средний"/>
+                            <ComboBoxItem Content="Сложный"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Время приготовления -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Подготовка (мин):" FontWeight="Bold"/>
+                        <TextBox x:Name="PrepTimeTextBox"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="Приготовление (мин):" FontWeight="Bold"/>
+                        <TextBox x:Name="CookTimeTextBox"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Порций:" FontWeight="Bold"/>
+                        <TextBox x:Name="ServingsTextBox"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Описание -->
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="Описание:" FontWeight="Bold"/>
+                    <TextBox x:Name="DescriptionTextBox"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="60" VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
+
+                <!-- Ингредиенты -->
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="Ингредиенты:" FontWeight="Bold"/>
+
+                    <!-- DataGrid для отображения добавленных ингредиентов -->
+                    <DataGrid x:Name="IngredientsDataGrid" 
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" 
+                              CanUserDeleteRows="False"
+                              Height="150"
+                              Margin="0,0,0,5">
+                    </DataGrid>
+
+                    <!-- Панель для добавления нового ингредиента -->
+                    <Border BorderBrush="LightGray" BorderThickness="1" 
+                            CornerRadius="5" Padding="5" Background="#F9F9F9">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Поля ввода -->
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Название ингредиента -->
+                                <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="Ингредиент:" FontWeight="SemiBold" FontSize="12"/>
+                                    <ComboBox x:Name="NewIngredientComboBox" 
+                                             DisplayMemberPath="Name"
+                                             IsEditable="True"
+                                             Text=""
+                                             Height="25"/>
+                                </StackPanel>
+
+                                <!-- Количество -->
+                                <StackPanel Grid.Column="1" Margin="0,0,5,0">
+                                    <TextBlock Text="Количество:" FontWeight="SemiBold" FontSize="12"/>
+                                    <TextBox x:Name="NewQuantityTextBox" 
+                                            Text="1"
+                                            Height="25"/>
+                                </StackPanel>
+
+                                <!-- Единица измерения -->
+                                <StackPanel Grid.Column="2" Margin="0,0,5,0">
+                                    <TextBlock Text="Единица:" FontWeight="SemiBold" FontSize="12"/>
+                                    <ComboBox x:Name="NewUnitComboBox"
+                                             IsEditable="True"
+                                             Text="г"
+                                             Height="25">
+                                        <ComboBoxItem>г</ComboBoxItem>
+                                        <ComboBoxItem>мл</ComboBoxItem>
+                                        <ComboBoxItem>шт</ComboBoxItem>
+                                        <ComboBoxItem>ст.л.</ComboBoxItem>
+                                        <ComboBoxItem>ч.л.</ComboBoxItem>
+                                        <ComboBoxItem>щепотка</ComboBoxItem>
+                                        <ComboBoxItem>по вкусу</ComboBoxItem>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Примечания -->
+                                <StackPanel Grid.Column="3">
+                                    <TextBlock Text="Примечания (необязательно):" FontWeight="SemiBold" FontSize="12"/>
+                                    <TextBox x:Name="NewNotesTextBox" 
+                                            Text=""
+                                            Height="25"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Кнопка добавления -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                                <Button x:Name="AddIngredientButton"
+                                       Content="Добавить ингредиент"
+                                       Click="AddIngredientButton_Click"
+                                       Width="150" 
+                                       Height="25"
+                                       Background="#4CAF50"
+                                       Foreground="White"
+                                       BorderThickness="0"
+                                       FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- Инструкция -->
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="Инструкция приготовления:" FontWeight="Bold"/>
+                    <TextBox x:Name="InstructionsTextBox"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="120" VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
+
+                <!-- Флажки -->
+                <StackPanel>
+                    <CheckBox x:Name="IsFavoriteCheckBox" 
+                             Content="Добавить в избранное" 
+                             Margin="0,0,0,5"/>
+                    <CheckBox x:Name="PremiumCheckBox" 
+                             Content="Премиум рецепт"
+                             Margin="0,0,0,10"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="2" 
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Right">
+            <Button Content="Сохранить" 
+                   Width="100" 
+                   Click="SaveButton_Click"
+                   Background="#2196F3"
+                   Foreground="White"
+                   BorderThickness="0"
+                   FontWeight="SemiBold"
+                   Height="30"/>
+            <Button Content="Отмена" 
+                   Width="100" 
+                   Margin="10,0,0,0" 
+                   Click="CancelButton_Click"
+                   Background="#F44336"
+                   Foreground="White"
+                   BorderThickness="0"
+                   FontWeight="SemiBold"
+                   Height="30"/>
+        </StackPanel>
+    </Grid>
 </Window>

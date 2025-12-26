@@ -9,14 +9,13 @@ namespace Data.Interfaces
 {
     public interface IRecipeIngredientRepository
     {
-        int Add(RecipeIngredient recipeIngredient);
-        RecipeIngredient? GetById(int id);
-        List<RecipeIngredient> GetAll();
-        bool Update(RecipeIngredient recipeIngredient);
-        bool Delete(int id);
-
-        // Дополнительные методы
-        List<RecipeIngredient> GetByRecipeId(int recipeId);
-        bool DeleteByRecipeId(int recipeId);
+        void Add(RecipeIngredient recipeIngredient);
+        void AddRange(IEnumerable<RecipeIngredient> recipeIngredients);
+        void Update(RecipeIngredient recipeIngredient);
+        void Delete(int id);
+        void DeleteByRecipeId(int recipeId);
+        RecipeIngredient GetById(int id);
+        IEnumerable<RecipeIngredient> GetByRecipeId(int recipeId);
+        IEnumerable<RecipeIngredient> GetAll();
     }
 }
