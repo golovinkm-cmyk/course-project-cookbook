@@ -37,17 +37,16 @@
                     </TextBox.InputBindings>
                 </TextBox>
                 <Button Content="Поиск" Width="80" Click="SearchButton_Click"/>
+
+                <!-- Исправленный ComboBox для категорий -->
                 <ComboBox x:Name="CategoryComboBox" Width="150" Margin="10,0,0,0"
-                         SelectionChanged="CategoryComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Все категории"/>
+                         SelectionChanged="CategoryComboBox_SelectionChanged"
+                         DisplayMemberPath="Name">
                 </ComboBox>
 
+                <!-- Исправленный ComboBox для сложности -->
                 <ComboBox x:Name="DifficultyComboBox" Width="150" Margin="10,0,0,0"
                          SelectionChanged="DifficultyComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Все уровни сложности"/>
-                    <ComboBoxItem Content="Легкий"/>
-                    <ComboBoxItem Content="Средний"/>
-                    <ComboBoxItem Content="Сложный"/>
                 </ComboBox>
             </StackPanel>
 

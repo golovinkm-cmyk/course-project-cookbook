@@ -84,7 +84,7 @@ public class CookBookDbContext : DbContext
             entity.Property(e => e.Servings)
                 .IsRequired();
 
-            entity.Property(e => e.IsFavorite)
+            entity.Property(e => e.IsFavorite)                                  //Конфигурация БД
                 .IsRequired()
                 .HasDefaultValue(false);
 
@@ -171,7 +171,7 @@ public class CookBookDbContext : DbContext
                 .HasForeignKey(e => e.IngredientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Составной уникальный индекс, чтобы один ингредиент не мог быть добавлен дважды в один рецепт
+                                                                //Запрет дублирования ингредиента в одном рецепте.
             entity.HasIndex(e => new { e.RecipeId, e.IngredientId })
                 .IsUnique();
         });
@@ -235,7 +235,7 @@ public class CookBookDbContext : DbContext
         });
     }
 
-    public override int SaveChanges()
+    public override int SaveChanges()               //Автоматическое обновление дат
     {
         // Автоматическое обновление ModifiedDate для измененных сущностей
         var entries = ChangeTracker

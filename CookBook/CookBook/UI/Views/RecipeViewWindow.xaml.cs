@@ -49,7 +49,7 @@ public class RecipeViewModel
     public int CookingTime { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Instructions { get; set; } = string.Empty;
-    public ObservableCollection<IngredientViewModel> Ingredients { get; set; }
+    public ObservableCollection<IngredientViewModel> Ingredients { get; set; } = new ObservableCollection<IngredientViewModel>();
 
     public RecipeViewModel(Domain.Entities.Recipe recipe,
                           ObservableCollection<IngredientViewModel> ingredients,
@@ -64,7 +64,15 @@ public class RecipeViewModel
         CookingTime = recipe.CookingTime;
         Description = recipe.Description ?? "";
         Instructions = recipe.Instructions;
-        Ingredients = ingredients;
+        
+        // Добавляем элементы, если передана коллекция
+        if (ingredients != null)
+        {
+            foreach (var ingredient in ingredients)
+            {
+                Ingredients.Add(ingredient);
+            }
+        }
     }
 }
 

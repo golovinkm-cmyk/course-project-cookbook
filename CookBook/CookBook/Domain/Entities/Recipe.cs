@@ -13,14 +13,14 @@ public class Recipe
     public bool IsFavorite { get; set; }
     public bool IsPremium { get; set; }
 
-    // Вычисляемое свойство (не мапится в БД)
+    
     public int TotalTime => PreparationTime + CookingTime;
 
     // Внешний ключ и навигационное свойство для категории
     public int CategoryId { get; set; }
     public Category? Category { get; set; }
 
-    // Даты
+    
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
 

@@ -45,6 +45,7 @@ public partial class RecipeEditWindow : Window
             _recipeIngredients = new ObservableCollection<RecipeIngredientViewModel>();
 
             InitializeComponent();
+            InitializeComboBoxes();
             InitializeData();
         }
         catch (Exception ex)
@@ -55,43 +56,49 @@ public partial class RecipeEditWindow : Window
         }
     }
 
+    private void InitializeComboBoxes()
+    {
+        try
+        {
+            // Category ComboBox
+            CategoryComboBox.ItemsSource = _categories;
+            CategoryComboBox.DisplayMemberPath = "Name";
+            CategoryComboBox.SelectedValuePath = "Id";
+
+            // Difficulty ComboBox
+            var difficulties = new List<string> { "Легкий", "Средний", "Сложный" };
+            DifficultyComboBox.ItemsSource = difficulties;
+
+            // Unit ComboBox
+            var units = new List<string>
+            {
+                "г", "мл", "шт", "ст.л.", "ч.л.", "щепотка", "по вкусу"
+            };
+            NewUnitComboBox.ItemsSource = units;
+
+            // New Ingredient ComboBox
+            NewIngredientComboBox.ItemsSource = _availableIngredients;
+            NewIngredientComboBox.DisplayMemberPath = "Name";
+
+            if (_availableIngredients.Any())
+            {
+                NewIngredientComboBox.SelectedIndex = 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при инициализации ComboBox: {ex.Message}",
+                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private void InitializeData()
     {
         try
         {
-            // ВАЖНО: Сначала очищаем ItemsSource, потом устанавливаем
-            if (CategoryComboBox != null)
-            {
-                CategoryComboBox.ItemsSource = null; // Очищаем сначала
-                CategoryComboBox.ItemsSource = _categories;
-                CategoryComboBox.DisplayMemberPath = "Name";
-                CategoryComboBox.SelectedValuePath = "Id";
-            }
-
-            // ВАЖНО: Для DifficultyComboBox тоже очищаем и устанавливаем простые строки
-            if (DifficultyComboBox != null)
-            {
-                DifficultyComboBox.ItemsSource = null; // Очищаем сначала
-                DifficultyComboBox.ItemsSource = new[] { "Легкий", "Средний", "Сложный" };
-            }
-
-            // ВАЖНО: Для NewIngredientComboBox очищаем и устанавливаем
-            if (NewIngredientComboBox != null)
-            {
-                NewIngredientComboBox.ItemsSource = null; // Очищаем сначала
-                NewIngredientComboBox.ItemsSource = _availableIngredients;
-                NewIngredientComboBox.DisplayMemberPath = "Name";
-                if (_availableIngredients.Any())
-                {
-                    NewIngredientComboBox.SelectedIndex = 0;
-                }
-            }
-
             // Настраиваем DataGrid для ингредиентов
             if (IngredientsDataGrid != null)
             {
-                // ВАЖНО: Сначала очищаем ItemsSource
-                IngredientsDataGrid.ItemsSource = null;
                 IngredientsDataGrid.ItemsSource = _recipeIngredients;
                 IngredientsDataGrid.CanUserAddRows = false;
                 IngredientsDataGrid.CanUserDeleteRows = false;

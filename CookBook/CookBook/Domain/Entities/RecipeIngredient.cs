@@ -10,6 +10,6 @@ public class RecipeIngredient
     public string Notes { get; set; } = string.Empty;
 
     // Навигационные свойства
-    public virtual Recipe Recipe { get; set; }
-    public virtual Ingredient Ingredient { get; set; }
+    public virtual Recipe? Recipe { get; set; }
+    public virtual Ingredient? Ingredient { get; set; }
 }

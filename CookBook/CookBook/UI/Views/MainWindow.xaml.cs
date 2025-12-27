@@ -1,11 +1,12 @@
-﻿using System.Linq;
+﻿using Data.Interfaces;
+using Domain.Entities;
+using Interfaces;
+using Services;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Data.Interfaces;
-using Domain.Entities;
-using Services;
-using Interfaces;
+using System.Windows.Media;
 
 namespace UI.Views;
 
@@ -106,23 +107,26 @@ public partial class MainWindow : Window
 
     private void InitializeUI()
     {
-        // Заполняем комбобокс категорий
-        CategoryComboBox.Items.Clear();
-        CategoryComboBox.Items.Add("Все категории");
+        // Наполняем ComboBox через ItemsSource
+        var allCategories = _categoryRepository.GetAll().ToList();
+        var categoriesForCombo = new List<object> {
+    new Category { Id = 0, Name = "Все категории" }
+};
+        
+        categoriesForCombo.AddRange(allCategories);
 
-        foreach (var category in _categoryRepository.GetAll())
-        {
-            CategoryComboBox.Items.Add(category.Name);
-        }
-
+        CategoryComboBox.ItemsSource = categoriesForCombo;
         CategoryComboBox.SelectedIndex = 0;
 
-        // Заполняем комбобокс сложности
-        DifficultyComboBox.Items.Clear();
-        DifficultyComboBox.Items.Add("Все уровни сложности");
-        DifficultyComboBox.Items.Add("Легкий");
-        DifficultyComboBox.Items.Add("Средний");
-        DifficultyComboBox.Items.Add("Сложный");
+        // Наполняем ComboBox сложности
+        var difficulties = new List<string>
+    {
+        "Все уровни сложности",
+        "Легкий",
+        "Средний",
+        "Сложный"
+    };
+        DifficultyComboBox.ItemsSource = difficulties;
         DifficultyComboBox.SelectedIndex = 0;
 
         // Обновляем тексты в зависимости от режима
@@ -284,7 +288,7 @@ public partial class MainWindow : Window
         {
             recipe.Category = allCategories.FirstOrDefault(c => c.Id == recipe.CategoryId);
 
-            // Убеждаемся, что DifficultyLevel - строка, а не объект ComboBox
+            
             if (recipe.DifficultyLevel != null && recipe.DifficultyLevel.Contains("Controls.ComboBox"))
             {
                 recipe.DifficultyLevel = "Средний"; // Значение по умолчанию
@@ -305,11 +309,12 @@ public partial class MainWindow : Window
         FavoriteButton.IsEnabled = isEnabled;
         DeleteButton.IsEnabled = isEnabled;
 
-        if (_selectedRecipe != null)
+        if (_selectedRecipe != null)                                                                     
         {
             FavoriteButton.Content = _selectedRecipe.IsFavorite ? "★ Убрать из избранного" : "☆ В избранное";
+           
 
-            // Исправляем DifficultyLevel если он содержит Controls.ComboBox
+
             if (_selectedRecipe.DifficultyLevel != null && _selectedRecipe.DifficultyLevel.Contains("Controls.ComboBox"))
             {
                 _selectedRecipe.DifficultyLevel = "Средний";
@@ -396,7 +401,7 @@ public partial class MainWindow : Window
     {
         if (_selectedRecipe == null) return;
 
-        _selectedRecipe.IsFavorite = !_selectedRecipe.IsFavorite;
+        _selectedRecipe.IsFavorite = !_selectedRecipe.IsFavorite;                       //В избранное
         _recipeRepository.Update(_selectedRecipe);
 
         LoadData();
@@ -416,8 +421,8 @@ public partial class MainWindow : Window
         if (result == MessageBoxResult.Yes)
         {
             // Удаляем связанные ингредиенты
-            _recipeIngredientRepository.DeleteByRecipeId(_selectedRecipe.Id);
-            _recipeRepository.Delete(_selectedRecipe.Id);
+            _recipeIngredientRepository.DeleteByRecipeId(_selectedRecipe.Id); // Удаление связей
+            _recipeRepository.Delete(_selectedRecipe.Id); // Удаление рецепта
             LoadData();
             UpdateStatus();
         }
@@ -694,7 +699,11 @@ public class CategoriesWindow : Window
 
     private void DeleteButton_Click(object sender, RoutedEventArgs e)
     {
-        var selectedCategory = (Domain.Entities.Category)((ListBox)sender).SelectedItem;
+        // Находим ListBox в визуальном дереве
+        var listBox = FindVisualChild<ListBox>(this);
+        if (listBox == null) return;
+
+        var selectedCategory = listBox.SelectedItem as Category;
         if (selectedCategory == null) return;
 
         var result = MessageBox.Show(
@@ -708,6 +717,27 @@ public class CategoriesWindow : Window
             _categoryRepository.Delete(selectedCategory.Id);
             _categories.Remove(selectedCategory);
         }
+    }
+
+    // Вспомогательный метод для поиска дочерних элементов
+    private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T foundChild)
+            {
+                return foundChild;
+            }
+
+            var childOfChild = FindVisualChild<T>(child);
+            if (childOfChild != null)
+            {
+                return childOfChild;
+            }
+        }
+
+        return null;
     }
 }
 

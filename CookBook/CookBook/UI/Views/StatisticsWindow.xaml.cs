@@ -126,7 +126,7 @@ public partial class StatisticsWindow : Window
                 Background = OxyColors.White
             };
 
-            var series = new PieSeries
+            var series = new PieSeries         //(построение диаграммы)
             {
                 StrokeThickness = 2,
                 InsideLabelPosition = 0.8,

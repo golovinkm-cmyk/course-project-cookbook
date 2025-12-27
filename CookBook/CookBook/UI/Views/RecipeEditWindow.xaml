@@ -41,11 +41,7 @@
 
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Уровень сложности:" FontWeight="Bold"/>
-                        <ComboBox x:Name="DifficultyComboBox">
-                            <ComboBoxItem Content="Легкий"/>
-                            <ComboBoxItem Content="Средний"/>
-                            <ComboBoxItem Content="Сложный"/>
-                        </ComboBox>
+                        <ComboBox x:Name="DifficultyComboBox"/>
                     </StackPanel>
                 </Grid>
 
@@ -136,15 +132,7 @@
                                     <ComboBox x:Name="NewUnitComboBox"
                                              IsEditable="True"
                                              Text="г"
-                                             Height="25">
-                                        <ComboBoxItem>г</ComboBoxItem>
-                                        <ComboBoxItem>мл</ComboBoxItem>
-                                        <ComboBoxItem>шт</ComboBoxItem>
-                                        <ComboBoxItem>ст.л.</ComboBoxItem>
-                                        <ComboBoxItem>ч.л.</ComboBoxItem>
-                                        <ComboBoxItem>щепотка</ComboBoxItem>
-                                        <ComboBoxItem>по вкусу</ComboBoxItem>
-                                    </ComboBox>
+                                             Height="25"/>
                                 </StackPanel>
 
                                 <!-- Примечания -->

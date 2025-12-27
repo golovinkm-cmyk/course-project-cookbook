@@ -31,8 +31,8 @@ public partial class App : Application
 
         try
         {
-            // Для разработки можно использовать InMemory репозитории
-            // Для продакшена - переключаемся на EF Core
+           
+            
             bool useInMemory = false; // Измените на false для использования БД
 
             if (useInMemory)
@@ -105,6 +105,7 @@ public partial class App : Application
 
     private void InitializeInMemoryRepositories()
     {
+
         _categoryRepository = new InMemoryCategoryRepository();
         _recipeRepository = new InMemoryRecipeRepository();
         _ingredientRepository = new InMemoryIngredientRepository();
@@ -125,7 +126,7 @@ public partial class App : Application
         // Проверяем, есть ли уже данные в БД (проверяем по категориям)
         if (_categoryRepository!.GetAll().Any())
         {
-            // Данные уже есть, пропускаем заполнение
+            
             return;
         }
 
@@ -135,7 +136,7 @@ public partial class App : Application
 
     private void SeedTestData()
     {
-        // Добавляем тестовые категории
+        
         var categories = new[]
         {
             "Супы",
